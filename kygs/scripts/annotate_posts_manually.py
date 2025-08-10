@@ -13,7 +13,7 @@ from kygs.utils.common import get_config_path
 from kygs.utils.console import console, prompt_user
 
 
-CONFIG_NAME = "config_annotate_posts"
+CONFIG_NAME = "config_annotate_posts_manually"
 
 
 def display_post(post: dict) -> None:
@@ -49,7 +49,7 @@ def get_valid_label(labels: list[str]) -> str:
     return choices[choice]
 
 
-def annotate_posts(cfg: DictConfig) -> None:
+def annotate_posts_manually(cfg: DictConfig) -> None:
     # Load collected posts
     with open(cfg.reddit.input_file, 'r', encoding='utf-8') as f:
         data = json.load(f)
@@ -96,5 +96,5 @@ if __name__ == "__main__":
         config_path=str(get_config_path()),
         config_name=CONFIG_NAME,
         version_base="1.3",
-    )(annotate_posts)()
+    )(annotate_posts_manually)()
 
