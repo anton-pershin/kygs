@@ -20,5 +20,5 @@ llm_server_url: http://localhost:9191/v1/chat/completions
 reddit:
   client_id: YOUR_CLIENT_ID
   client_secret: YOUR_CLIENT_SECRET
-  user_agent: macos:kygs:v0.0.1 (by u/tonythequick)
+  user_agent: YOUR_USER_AGENT
 
