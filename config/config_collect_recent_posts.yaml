@@ -7,3 +7,18 @@ project_path: ${user_settings.project_path}
 result_dir: ${user_settings.result_dir}
 hydra_root: ${user_settings.hydra_root}
 hydra_dir: ${user_settings.hydra_dir}
+
+# Reddit configuration
+reddit:
+  subreddits: 
+    - "ChatGPT"
+    - "OneAI"
+    - "singularity"
+    - "OpenAI"
+    - "AgentsOfAI"
+    - "LocalLLaMA"
+    - "GenAI4all"
+    - "accelerate"
+  time_window:  # format suitable for timedelta
+    hours: 24  # collect posts from last 24 hours
+

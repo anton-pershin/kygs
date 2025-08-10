@@ -1,5 +1,5 @@
-project_path: /Users/tony/reps/github/anton-pershin/llm-assistant
-hydra_root: ${user_settings.result_dir}/hydra
+project_path: /Users/tony/reps/github/anton-pershin/kygs
+hydra_root: ${user_settings.project_path}/hydra
 hydra_dir: ${user_settings.hydra_root}/${now:%Y-%m-%d}/${now:%H-%M-%S}
 result_dir: ${user_settings.hydra_dir}
 
@@ -15,4 +15,9 @@ markdown_collections:
     description: "IT notes"
 
 llm_server_url: http://localhost:9191/v1/chat/completions
+
+reddit:
+  client_id: YOUR_CLIENT_ID
+  client_secret: YOUR_CLIENT_SECRET
+  user_agent: YOUR_USER_AGENT 
 
