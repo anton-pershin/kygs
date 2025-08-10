@@ -46,3 +46,22 @@ Creates a timestamped JSON file (`reddit_posts_YYYYMMDD_HHMMSS.json`) in the res
 - Collection metadata (time, subreddits, time window)
 - List of posts with title, author, URL, text content, and score
 
+
+### `annotate_posts_manually.py`
+
+Allows manual annotation/labeling of previously collected Reddit posts. Displays posts one by one and prompts for label selection from predefined options.
+
+#### Configuration
+
+1. In `config_annotate_posts_manually.yaml`, modify:
+   - `reddit.input_file`: path to the JSON file containing collected posts
+   - `reddit.labels`: list of available labels for annotation (e.g., 'gpt5', 'gpt4o', 'gpt-oss', etc.)
+   - `reddit.annotated_dataset_path`: where to save the annotated dataset
+
+#### Output
+
+Creates a JSON file at the specified output path containing:
+- Original collection metadata
+- Annotation metadata (time, available labels)
+- List of posts with all original fields plus added 'label' field
+
