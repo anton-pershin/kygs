@@ -1,0 +1,24 @@
+defaults:
+  - _self_
+  - user_settings: user_settings
+  - hydra: base
+  - llm: local
+  - message_provider: reddit_posts_json
+
+project_path: ${user_settings.project_path}
+result_dir: ${user_settings.result_dir}
+hydra_root: ${user_settings.hydra_root}
+hydra_dir: ${user_settings.hydra_dir}
+
+system_prompt: "You are a helpful assistant whose role is to summarize information from posts. Follow the instructions as closely as possible."
+user_prompt_template: |
+  ### Instruction ###
+  Below are the text posts collected within a certain time interval and stored in JSON. Write a one-sentence summary based on them. 
+
+  ### Posts ###
+  {messages_as_json}
+
+summarization_time_interval: minute 
+output:
+  summarized_messages_path: summarized_messages.csv
+
