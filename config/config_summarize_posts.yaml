@@ -11,14 +11,26 @@ hydra_root: ${user_settings.hydra_root}
 hydra_dir: ${user_settings.hydra_dir}
 
 system_prompt: "You are a helpful assistant whose role is to summarize information from posts. Follow the instructions as closely as possible."
-user_prompt_template: |
-  ### Instruction ###
-  Below are the text posts collected within a certain time interval and stored in JSON. Write a one-sentence summary based on them. 
+original_post_summarization:
+  time_interval: minute 
+  user_prompt_template: |
+    ### Instruction ###
+    Below are the text posts collected within a certain time interval and stored in JSON. Write a one-sentence summary based on them. 
 
-  ### Posts ###
-  {messages_as_json}
+    ### Posts ###
+    {messages_as_json}
 
-summarization_time_interval: minute 
-output:
-  summarized_messages_path: summarized_messages.csv
+  output:
+    summaries_path: summarized_messages_per_interval.csv
 
+recursive_summarization:
+  user_prompt_template: |
+    ### Instruction ###
+    Below are summaries of the text posts collected on a social platform and stored in JSON. Write a summary based on them using up to three sentences. 
+
+    ### Posts ###
+    {summaries_as_json}
+
+  max_characters_in_prompt: 4096
+  output:
+    summary_path: summarized_messages_overall.csv

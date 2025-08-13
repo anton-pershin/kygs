@@ -49,10 +49,6 @@ def summarize_posts(
         start_dts.append(message_collection.start_dt)
         end_dts.append(message_collection.end_dt)
 
-    user_prompts = user_prompts[:5]
-    start_dts = start_dts[:5]
-    end_dts = end_dts[:5]
-
     return _run_summarization_via_llm(
         llm=llm,
         system_prompt=system_prompt,
@@ -68,8 +64,7 @@ def summarize_summaries(
     system_prompt: str,
     user_prompt_template: str,
     max_characters_in_prompt: int,
-):
-    # TODO: stopped here. This function is done. Just need a script to run it and check
+) -> list[Summary]:
     user_prompts = []
     start_dts = []
     end_dts = []
@@ -78,8 +73,7 @@ def summarize_summaries(
     cur_start_dt = None
     cur_end_dt = None
     for summary in summary_collection:
-        n_characters += len(summary.text)
-        if n_characters > max_characters_in_prompt:
+        if n_characters + len(summary.text) > max_characters_in_prompt:
             user_prompt = _compose_user_prompt_for_summary_collection(
                 summary_collection=cur_summaries_buffer,
                 user_prompt_template=user_prompt_template,
@@ -87,13 +81,27 @@ def summarize_summaries(
             user_prompts.append(user_prompt)
             start_dts.append(cur_start_dt)
             end_dts.append(cur_end_dt)
+
+            n_characters = 0
+            cur_summaries_buffer = []
             cur_start_dt = None
             cur_end_dt = None
-        else:
-            cur_summaries_buffer.append(summary)
-            if cur_start_dt is None:
-                cur_start_dt = summary.start_dt
-            cur_end_dt = summary.end_dt
+
+        cur_summaries_buffer.append(summary)
+        if cur_start_dt is None:
+            cur_start_dt = summary.start_dt
+        cur_end_dt = summary.end_dt
+        n_characters += len(summary.text)
+
+    # Process last user prompt
+    if cur_summaries_buffer:
+        user_prompt = _compose_user_prompt_for_summary_collection(
+            summary_collection=cur_summaries_buffer,
+            user_prompt_template=user_prompt_template,
+        )
+        user_prompts.append(user_prompt)
+        start_dts.append(cur_start_dt)
+        end_dts.append(cur_end_dt)
 
     return _run_summarization_via_llm(
         llm=llm,
