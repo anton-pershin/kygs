@@ -57,7 +57,7 @@ def summarize_posts(
         user_prompts=user_prompts,
         start_dts=start_dts,
         end_dts=end_dts,
-        progress_title=f"Summarizing {len(user_prompts)} messages" if verbose else None
+        progress_title=f"Summarizing {len(user_prompts)} message collections" if verbose else None
     )
 
 
@@ -113,7 +113,7 @@ def summarize_summaries(
         user_prompts=user_prompts,
         start_dts=start_dts,
         end_dts=end_dts,
-        progress_title=f"Summarizing {len(user_prompts)} summaries" if verbose else None
+        progress_title=f"Summarizing {len(user_prompts)} summary collections" if verbose else None
     )
 
 
