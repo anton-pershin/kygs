@@ -1,6 +1,7 @@
 import datetime
 from dataclasses import dataclass
 import json
+from typing import Optional
 
 from rally.llm import Llm
 from rally.interaction import request_based_on_prompts
@@ -23,6 +24,7 @@ def summarize_posts(
     llm: Llm,
     system_prompt: str,
     user_prompt_template: str,
+    verbose: bool = False,
 ) -> list[Summary]:
     message_splits = mp.split_by(summarization_time_interval)
     user_prompts = []
@@ -55,6 +57,7 @@ def summarize_posts(
         user_prompts=user_prompts,
         start_dts=start_dts,
         end_dts=end_dts,
+        progress_title=f"Summarizing {len(user_prompts)} messages" if verbose else None
     )
 
 
@@ -64,6 +67,7 @@ def summarize_summaries(
     system_prompt: str,
     user_prompt_template: str,
     max_characters_in_prompt: int,
+    verbose: bool = False,
 ) -> list[Summary]:
     user_prompts = []
     start_dts = []
@@ -109,6 +113,7 @@ def summarize_summaries(
         user_prompts=user_prompts,
         start_dts=start_dts,
         end_dts=end_dts,
+        progress_title=f"Summarizing {len(user_prompts)} summaries" if verbose else None
     )
 
 
@@ -138,6 +143,7 @@ def _run_summarization_via_llm(
     user_prompts: list[str],
     start_dts: list[datetime.datetime],
     end_dts: list[datetime.datetime],
+    progress_title: Optional[str] = None,
 ) -> list[Summary]:
     responses: list[str] = request_based_on_prompts(
         llm_server_url=llm.url,
@@ -145,6 +151,7 @@ def _run_summarization_via_llm(
         user_prompts=user_prompts,
         authorization=llm.authorization,
         model=llm.model,
+        progress_title=progress_title,
     )
     responses_wo_thinking = [THINKING_REMOVERS[llm.model_family](p) for p in responses]
 

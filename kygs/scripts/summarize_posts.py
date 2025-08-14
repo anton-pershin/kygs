@@ -35,6 +35,7 @@ def run_summarize_posts(cfg: DictConfig) -> None:
         llm=llm,
         system_prompt=cfg.system_prompt,
         user_prompt_template=cfg.original_post_summarization.user_prompt_template,
+        verbose=True,
     )
 
     _dump_summaries(
@@ -50,6 +51,7 @@ def run_summarize_posts(cfg: DictConfig) -> None:
             system_prompt=cfg.system_prompt,
             user_prompt_template=cfg.recursive_summarization.user_prompt_template,
             max_characters_in_prompt=cfg.recursive_summarization.max_characters_in_prompt,
+            verbose=True,
         )
     
     _dump_summaries(
