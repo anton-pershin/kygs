@@ -1,52 +1,16 @@
 from pathlib import Path
-from datetime import datetime
+from datetime import datetime, UTC
 import json
 
 import hydra
-from hydra.utils import instantiate
 from omegaconf import DictConfig
-from rich.panel import Panel
-from rich.markdown import Markdown
-from rich.prompt import Prompt
 
 from kygs.utils.common import get_config_path
-from kygs.utils.console import console, prompt_user
+from kygs.utils.console import console
+from kygs.annotation.manual import MessageForAnnotation, annotate_items
 
 
 CONFIG_NAME = "config_annotate_posts_manually"
-
-
-def display_post(post: dict) -> None:
-    content = f"## {post['title']}\n\n"
-    if post['selftext']:
-        content += f"{post['selftext']}\n\n"
-    content += f"*Posted by u/{post['author']} in r/{post['subreddit']}*"
-    
-    panel = Panel(
-        Markdown(content),
-        title=f"Score: {post['score']}",
-        subtitle=f"URL: {post['url']}"
-    )
-    console.print(panel)
-    console.print()
-
-
-def get_valid_label(labels: list[str]) -> str:
-    """Prompt user for a valid label using numbered options."""
-    choices = {str(i): label for i, label in enumerate(labels, 1)}
-    
-    # Display available labels first
-    console.print("Available labels:")
-    for number, label in choices.items():
-        console.print(f"  {number}. {label}")
-    console.print()
-
-    choice = Prompt.ask(
-        "Choose label",
-        choices=choices.keys(),
-        show_choices=False
-    )
-    return choices[choice]
 
 
 def annotate_posts_manually(cfg: DictConfig) -> None:
@@ -54,41 +18,43 @@ def annotate_posts_manually(cfg: DictConfig) -> None:
     with open(cfg.reddit.input_file, 'r', encoding='utf-8') as f:
         data = json.load(f)
     
-    posts = data['posts']
-    metadata = data['metadata']
-    
-    console.print(f"Loaded {len(posts)} posts for annotation")
-    console.print()
-    
-    # Annotate posts
-    annotated_posts = []
-    for i, post in enumerate(posts, 1):
-        console.print(f"Post {i} of {len(posts)}")
-        display_post(post)
-        
-        label = get_valid_label(cfg.reddit.labels)
+    # Convert posts to MessageForAnnotation objects
+    messages = [
+        MessageForAnnotation(
+            text=post['selftext'],
+            author=post['author'],
+            title=post['title'],
+            source=post['subreddit'],
+            url=post['url'],
+            score=post['score'],
+            time=datetime.fromtimestamp(int(post['created_utc']), UTC)
+        ) for post in data['posts']
+    ]
+
+    # Get annotations
+    labels = annotate_items(messages, cfg.reddit.labels)
+
+    # Update original posts with labels
+    for post, label in zip(data['posts'], labels):
         post['label'] = label
-        annotated_posts.append(post)
-        
-        console.print()
-    
-    # Save annotated dataset
-    output_file = Path(cfg.reddit.annotated_dataset_path)
-    output_file.parent.mkdir(parents=True, exist_ok=True)
-    
-    # Update metadata
+
+    # Handle metadata and saving
+    output_path = Path(cfg.reddit.annotated_dataset_path)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+
+    metadata = data['metadata']
     metadata.update({
         'annotation_time': datetime.now().isoformat(),
         'available_labels': list(cfg.reddit.labels)
     })
-    
-    with open(output_file, 'w', encoding='utf-8') as f:
+
+    with open(output_path, 'w', encoding='utf-8') as f:
         json.dump({
             'metadata': metadata,
-            'posts': annotated_posts
+            'posts': data['posts']
         }, f, indent=2, ensure_ascii=False)
     
-    console.print(f"Saved {len(annotated_posts)} annotated posts to {output_file}")
+    console.print(f"Saved {len(labels)} annotated posts to {output_path}")
 
 
 if __name__ == "__main__":
