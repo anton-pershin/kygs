@@ -39,7 +39,7 @@ class MessageProvider:
             d = json.load(f)
 
         messages = []
-        for m in d["posts"]:
+        for m in d["messages"]:
             if "action" in m:
                 continue
 
