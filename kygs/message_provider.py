@@ -4,6 +4,10 @@ import json
 import datetime
 import math
 
+from rich.panel import Panel
+from rich.markdown import Markdown
+
+from kygs.utils.console import console
 from kygs.utils.typing import TimeUnit
 from kygs.utils.time import (
     datetime_floor,
@@ -65,6 +69,20 @@ class MessageProvider:
             messages.append(msg)
 
         return cls(messages)
+
+    def display_messages(self) -> None:
+        for i, message in enumerate(self.messages, 1):
+            console.print(f"Item {i} of {len(self.messages)}")
+            content = f"## {message.author}\n\n"
+            content += f"{message.text}\n\n"
+        
+            panel = Panel(
+                Markdown(content),
+                title=f"[bold]{message.time}[/bold]",
+                subtitle=None,
+            )
+            console.print(panel)
+            console.print()
 
     def times(self) -> list[datetime.datetime]:
         return [m.time for m in self.messages]
