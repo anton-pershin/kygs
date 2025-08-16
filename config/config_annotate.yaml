@@ -1,0 +1,20 @@
+defaults:
+  - _self_
+  - user_settings: user_settings
+  - hydra: base
+  - annotator: llm
+  - llm: local
+  - message_provider: reddit_posts_json
+
+project_path: ${user_settings.project_path}
+result_dir: ${user_settings.result_dir}
+hydra_root: ${user_settings.hydra_root}
+hydra_dir: ${user_settings.hydra_dir}
+dataset_path: ${user_settings.dataset_path}
+
+labels:
+  positive: "Positive attitude towards some LLM"
+  negative: "Negative attitude towards some LLM"
+  neutral: "Neutral attitude towards some LLM or just a post which is irrelevant to LLMs"
+
+annotated_dataset_path: annotated_dataset.csv

@@ -1,28 +1,14 @@
-from dataclasses import dataclass
-from typing import List, Optional
-from pathlib import Path
-from datetime import datetime
-
+from typing import List
 from rich.panel import Panel
 from rich.markdown import Markdown
 from rich.prompt import Prompt
 
 from kygs.utils.console import console
+from kygs.message_provider import Message
+from kygs.annotation.base import MessageAnnotation 
 
 
-@dataclass
-class MessageForAnnotation:
-    text: str
-    author: str
-    title: Optional[str]
-    source: str
-    url: Optional[str]
-    score: int
-    time: datetime
-    label: Optional[str] = None
-
-
-def display_message(message: MessageForAnnotation) -> None:
+def display_message(message: Message) -> None:
     if message.title:
         content = f"## {message.title}\n\n"
     else:
@@ -56,18 +42,19 @@ def get_valid_label(labels: List[str]) -> str:
     return choices[choice]
 
 
-def annotate_items(messages: List[MessageForAnnotation], labels: List[str]) -> List[str]:
-    console.print(f"Loaded {len(messages)} items for annotation")
-    console.print()
-    
-    annotations = []
-    for i, message in enumerate(messages, 1):
-        console.print(f"Item {i} of {len(messages)}")
-        display_message(message)
-        
-        label = get_valid_label(labels)
-        annotations.append(label)
-        
+class ManualAnnotation(MessageAnnotation):
+    def __call__(self, messages: list[Message], labels: dict[str, str]) -> list[str]:
+        console.print(f"Loaded {len(messages)} items for annotation")
         console.print()
-    
-    return annotations
+        
+        annotations = []
+        for i, message in enumerate(messages, 1):
+            console.print(f"Item {i} of {len(messages)}")
+            display_message(message)
+            
+            label = get_valid_label(labels)
+            annotations.append(label)
+            
+            console.print()
+        
+        return annotations

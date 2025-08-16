@@ -20,7 +20,11 @@ class Message:
     text: str
     time: datetime.datetime
     author: str
-
+    title: Optional[str] = None
+    source: Optional[str] = None
+    url: Optional[str] = None
+    score: Optional[int] = None
+    label: Optional[str] = None
 
 @dataclass
 class MessageCollection:

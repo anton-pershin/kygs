@@ -1,0 +1,11 @@
+_target_: kygs.annotation.via_llm.AnnotationViaLlm
+llm: ${llm}
+system_prompt: |
+  You are a sentiment analyzer. You will be given text content and must classify it as either positive, negative, or neutral.
+  Only respond with one of these exact labels, nothing else.
+user_prompt_template: |
+  Analyze the sentiment of the following content. Choose one label from: {labels}
+
+  {content}
+
+verbose: true
