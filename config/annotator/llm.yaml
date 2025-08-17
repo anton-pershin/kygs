@@ -8,4 +8,6 @@ user_prompt_template: |
 
   {content}
 
+response_parser:
+  _target_: kygs.annotation.via_llm.SimpleLabelParser
 verbose: true

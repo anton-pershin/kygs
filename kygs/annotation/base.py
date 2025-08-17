@@ -1,12 +1,12 @@
 from abc import ABC, abstractmethod
-from dataclasses import dataclass
+from typing import Optional
 
 from kygs.message_provider import Message
 
 
 class MessageAnnotation(ABC):
     @abstractmethod
-    def __call__(self, messages: list[Message], labels: dict[str, str]) -> list[str]:
+    def __call__(self, messages: list[Message], labels: dict[str, str]) -> list[Optional[str]]:
         """Annotate a list of messages with provided labels.
 
         Args:
@@ -14,6 +14,6 @@ class MessageAnnotation(ABC):
             labels: Dict valid labels to choose from (key is label, value is description)
 
         Returns:
-            List of assigned labels
+            List of assigned labels. Each label can be None if annotation failed.
         """
         pass
