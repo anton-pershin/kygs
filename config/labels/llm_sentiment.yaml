@@ -1,0 +1,3 @@
+positive: "Positive attitude towards some LLM"
+negative: "Negative attitude towards some LLM"
+neutral: "Neutral attitude towards some LLM or just a post which is irrelevant to LLMs"
