@@ -1,0 +1,5 @@
+_target_: kygs.text_embedding.TextEmbeddingModel
+model: "intfloat/multilingual-e5-base"
+batch_size: 128
+max_input_seq_length: 512
+device: "mps"

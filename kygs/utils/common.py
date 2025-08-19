@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 
 
@@ -7,4 +8,8 @@ def get_project_path() -> Path:
 
 def get_config_path() -> Path:
     return get_project_path() / "config"
+
+
+def set_cuda_visible_devices(devices: list[int]) -> None:
+    os.environ["CUDA_VISIBLE_DEVICES"] = ",".join(map(str, devices))
 

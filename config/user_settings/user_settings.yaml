@@ -1,21 +1,9 @@
-project_path: /Users/tony/reps/github/anton-pershin/kygs
+project_path: path/to/this/repo
 hydra_root: ${user_settings.project_path}/hydra
 hydra_dir: ${user_settings.hydra_root}/${now:%Y-%m-%d}/${now:%H-%M-%S}
 result_dir: ${user_settings.hydra_dir}
-datasets: /Users/tony/datasets/kygs/reddit_posts
-
-markdown_collections:
-  management:
-    path: /Users/tony/reps/github/anton-pershin/management-notes
-    description: "Management notes and documentation"
-  general:
-    path: /Users/tony/reps/github/anton-pershin/general-notes
-    description: "General notes (books, articles etc.)"
-  it:
-    path: /Users/tony/reps/github/anton-pershin/it-notes
-    description: "IT notes"
-
-llm_server_url: http://localhost:9191/v1/chat/completions
+dataset_path: path/to/your/datasets
+model_path: path/to/your/models
 
 reddit:
   client_id: YOUR_CLIENT_ID

@@ -1,0 +1,19 @@
+defaults:
+  - _self_
+  - user_settings: user_settings
+  - hydra: base
+  - classifier: v0
+  - embedding: e5
+  - labels: llm_sentiment
+  - message_provider/reddit_posts_small_dataset/train@train_message_provider
+  - message_provider/reddit_posts_small_dataset/test@test_message_provider
+
+project_path: ${user_settings.project_path}
+dataset_path: ${user_settings.dataset_path}
+model_path: ${user_settings.model_path}
+result_dir: ${user_settings.hydra_dir}
+hydra_root: ${user_settings.hydra_root}
+hydra_dir: ${user_settings.hydra_dir}
+
+cuda_visible_devices: [1]
+

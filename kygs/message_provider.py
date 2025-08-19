@@ -4,6 +4,7 @@ import json
 import datetime
 import math
 
+import pandas as pd
 from rich.panel import Panel
 from rich.markdown import Markdown
 
@@ -20,11 +21,12 @@ class Message:
     text: str
     time: datetime.datetime
     author: str
+    label: Optional[str]
     title: Optional[str] = None
     source: Optional[str] = None
     url: Optional[str] = None
     score: Optional[int] = None
-    label: Optional[str] = None
+
 
 @dataclass
 class MessageCollection:
@@ -50,13 +52,13 @@ class MessageProvider:
             text = "".join([te["text"] for te in m["text_entities"]])
             time = datetime.datetime.strptime(m["date"], "%Y-%m-%dT%H:%M:%S")
             author = m["from"]
-            msg = Message(text, time, author)
+            msg = Message(text, time, author, label=None)
             messages.append(msg)
 
         return cls(messages)
         
     @classmethod
-    def from_reddit_posts_json(cls, json_path:str) -> MessageProvider:
+    def from_reddit_posts_json(cls, json_path: str) -> MessageProvider:
         with open(json_path, "r") as f:
             d = json.load(f)
 
@@ -69,7 +71,27 @@ class MessageProvider:
 
             time = datetime.datetime.utcfromtimestamp(int(m["created_utc"]))
             author = m["author"]
-            msg = Message(text, time, author)
+            label = m["label"] if "label" in m else None
+            msg = Message(text, time, author, label=label)
+            messages.append(msg)
+
+        return cls(messages)
+
+    @classmethod
+    def from_reddit_posts_csv(cls, csv_path: str) -> MessageProvider:
+        df = pd.read_csv(csv_path)
+
+        messages = []
+        for _, row in df.iterrows():
+            # Skip empty messages (typically, images/video with title only)
+            text = row["messages"]
+            if not text: 
+                continue
+
+            time = datetime.datetime.now()
+            author = "Unknown"
+            label = row["labels"]
+            msg = Message(text, time, author, label=label)
             messages.append(msg)
 
         return cls(messages)
@@ -83,7 +105,7 @@ class MessageProvider:
             panel = Panel(
                 Markdown(content),
                 title=f"[bold]{message.time}[/bold]",
-                subtitle=None,
+                subtitle=f"[bold]Label: {message.label}[/bold]",
             )
             console.print(panel)
             console.print()
