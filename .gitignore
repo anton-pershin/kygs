@@ -11,3 +11,6 @@ run_aider.sh
 
 # hydra
 hydra/
+
+# datasets
+*.csv
