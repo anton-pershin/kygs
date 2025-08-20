@@ -45,6 +45,7 @@ class AnnotationViaLlm(MessageAnnotation):
         # Get responses for all prompts at once
         responses = request_based_on_prompts(
             llm_server_url=self.llm.url,
+            max_concurrent_requests=self.llm.max_concurrent_requests,
             system_prompt=self.system_prompt,
             user_prompts=user_prompts,
             authorization=self.llm.authorization,
