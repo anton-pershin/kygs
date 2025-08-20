@@ -2,6 +2,7 @@ import math
 import time
 
 import numpy as np
+from rich.progress import track
 import torch.nn.functional as F
 import torch
 from torch import Tensor
@@ -11,10 +12,17 @@ from kygs.utils.typing import NDArrayFloat
 
 
 class TextEmbeddingModel:
-    def __init__(self, model: str, batch_size: int, max_input_seq_length: int, device: str) -> None:
+    def __init__(self,
+        model: str,
+        batch_size: int,
+        max_input_seq_length: int,
+        device: str,
+        verbose: bool = False,
+    ) -> None:
         self.batch_size = batch_size
         self.max_input_seq_length = max_input_seq_length
         self.device = device
+        self.verbose = verbose
         self.tokenizer: PreTrainedTokenizer = AutoTokenizer.from_pretrained(model)
         self.model: PreTrainedModel = AutoModel.from_pretrained(model, device_map="auto")
         self.model.eval()  # some layers behave differently in the traning and eval modes
@@ -25,8 +33,13 @@ class TextEmbeddingModel:
         embeddings = np.zeros((n_samples, emb_dim), np.float32)
         
         n_batch = math.ceil(n_samples / self.batch_size)
+        
+        batch_iterator = range(n_batch)
+        if self.verbose:
+            batch_iterator = track(batch_iterator, description="Computing embeddings", total=n_batch)
+
         with torch.no_grad():
-            for batch_i in range(n_batch):
+            for batch_i in batch_iterator:
                 l_i = batch_i * self.batch_size
                 r_i = (batch_i + 1) * self.batch_size if batch_i != n_batch - 1 else None 
                 batch_text_sequences = text_sequences[l_i: r_i]

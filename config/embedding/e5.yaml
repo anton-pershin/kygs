@@ -3,3 +3,4 @@ model: "intfloat/multilingual-e5-base"
 batch_size: 128
 max_input_seq_length: 512
 device: "mps"
+verbose: true

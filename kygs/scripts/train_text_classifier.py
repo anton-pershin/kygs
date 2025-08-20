@@ -4,6 +4,7 @@ import pickle
 from pathlib import Path
 
 import numpy as np
+from rich.table import Table
 import pandas as pd
 import torch.nn.functional as F
 import torch
@@ -18,9 +19,36 @@ from kygs.classifier import TextClassifier
 from kygs.text_embedding import TextEmbeddingModel
 from kygs.utils.typing import NDArrayInt, NDArrayFloat
 from kygs.utils.common import get_config_path, set_cuda_visible_devices
+from kygs.utils.console import console
 
 
 CONFIG_NAME = "config_train_text_classifier"
+
+
+def print_dataset_stats(name: str, mp: MessageProvider, labels: list[str]) -> None:
+    total_samples = len(mp.messages)
+    
+    # Count samples per label
+    label_counts = {}
+    for label in labels:
+        count = sum(1 for m in mp.messages if m.label == label)
+        percentage = (count / total_samples) * 100
+        label_counts[label] = (count, percentage)
+
+    # Create and populate table
+    table = Table(title=f"{name} Dataset Statistics")
+    table.add_column("Metric", style="cyan")
+    table.add_column("Value", style="green")
+    
+    table.add_row("Total samples", str(total_samples))
+    for label, (count, percentage) in label_counts.items():
+        table.add_row(
+            f"Label '{label}'",
+            f"{count} ({percentage:.1f}%)"
+        )
+    
+    console.print(table)
+    console.print()
 
 
 def get_text_sequences(mp: MessageProvider) -> list[str]:
@@ -76,6 +104,11 @@ def train_text_classifier(cfg: DictConfig) -> None:
     labels = list(cfg.labels)
     ensure_labels_are_valid(train_mp, labels)
     ensure_labels_are_valid(test_mp, labels)
+
+    # Print dataset statistics if verbose is enabled
+    if cfg.verbose:
+        print_dataset_stats("Training", train_mp, labels)
+        print_dataset_stats("Test", test_mp, labels)
 
     text_embedding_model = hydra.utils.instantiate(cfg.embedding)
 

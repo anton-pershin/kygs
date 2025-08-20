@@ -16,4 +16,5 @@ hydra_root: ${user_settings.hydra_root}
 hydra_dir: ${user_settings.hydra_dir}
 
 cuda_visible_devices: [1]
+verbose: true
 
