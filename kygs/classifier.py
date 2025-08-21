@@ -49,11 +49,13 @@ class TextClassifier:
     @classmethod
     def create_model(cls,
         hidden_layer_size: int,
+        max_iter: int,
         labels: list[str],
         model_path: str,
     ) -> TextClassifier:
         model = MLPClassifier(
             hidden_layer_sizes=(hidden_layer_size,),
+            max_iter=max_iter,
             random_state=1,
             verbose=True,
         )

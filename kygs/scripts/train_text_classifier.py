@@ -126,6 +126,7 @@ def train_text_classifier(cfg: DictConfig) -> None:
 
     classifier = TextClassifier.create_model(
         hidden_layer_size=cfg.classifier.hidden_layer_size,
+        max_iter=cfg.classifier.max_iter,
         model_path=cfg.classifier.model_path,
         labels=labels,
     )
