@@ -7,5 +7,6 @@ torch>=2.7
 transformers
 accelerate
 scikit-learn
+matplotlib
 
 rally @ git+https://github.com/anton-pershin/rally.git

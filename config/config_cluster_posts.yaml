@@ -1,0 +1,20 @@
+defaults:
+  - _self_
+  - user_settings: user_settings
+  - hydra: base
+  - message_provider: reddit_posts_tiny_clustering
+  - embedding: e5
+
+project_path: ${user_settings.project_path}
+dataset_path: ${user_settings.dataset_path}
+model_path: ${user_settings.model_path}
+result_dir: ${user_settings.hydra_dir}
+hydra_root: ${user_settings.hydra_root}
+hydra_dir: ${user_settings.hydra_dir}
+
+output:
+  summary_path: ${result_dir}/summary.csv
+  clustered_messages_path: ${result_dir}/clustered_messages.csv
+
+clustering:
+  distance_threshold: 0.5  # arbitrary threshold, tune as needed
