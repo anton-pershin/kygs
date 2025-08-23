@@ -50,6 +50,8 @@ def print_dataset_stats(name: str, mp: MessageProvider, labels: list[str]) -> No
     console.print(table)
     console.print()
 
+    console.print(f"Saved {total_samples} classified message results to {cfg.result_dir}")
+
 
 def get_text_sequences(mp: MessageProvider) -> list[str]:
     return [m.text for m in mp.messages]
