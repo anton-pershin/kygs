@@ -6,6 +6,7 @@ from scipy.cluster.hierarchy import dendrogram, linkage
 import matplotlib.pyplot as plt
 from pathlib import Path
 import time
+import json
 
 from kygs.message_provider import MessageProvider
 from kygs.text_embedding import TextEmbeddingModel
@@ -16,6 +17,65 @@ from kygs.utils.console import console
 
 
 CONFIG_NAME = "config_cluster_posts"
+
+
+def save_clustering_json(
+    text_sequences: list[str],
+    cluster_labels: list[str],
+    true_labels: list[str],
+    output_path: str
+) -> None:
+    # Group messages by cluster
+    clusters_dict = {}
+    unclustered = []
+    
+    for text, cluster_label, true_label in zip(text_sequences, cluster_labels, true_labels):
+        if cluster_label not in clusters_dict:
+            clusters_dict[cluster_label] = []
+        clusters_dict[cluster_label].append({
+            "text": text,
+            "true_label": true_label
+        })
+    
+    # Separate single-message clusters into unclustered
+    unclustered_labels = [label for label, msgs in clusters_dict.items() if len(msgs) == 1]
+    for label in unclustered_labels:
+        unclustered.extend(clusters_dict[label])
+        del clusters_dict[label]
+    
+    # Prepare clusters data
+    clusters_data = []
+    for label, messages in clusters_dict.items():
+        lengths = [len(msg["text"]) for msg in messages]
+        clusters_data.append({
+            "cluster_label": label,
+            "n_messages": len(messages),
+            "mean_length": int(round(np.mean(lengths))),
+            "q10_length": int(round(np.percentile(lengths, 10))),
+            "q90_length": int(round(np.percentile(lengths, 90))),
+            "messages": messages
+        })
+    
+    # Sort clusters by size (largest first)
+    clusters_data.sort(key=lambda x: x["n_messages"], reverse=True)
+    
+    # Create final structure, ensuring all numbers are Python native types
+    output_data = {
+        "n_clusters": int(len(clusters_data)),
+        "clusters": [{
+            "cluster_label": str(c["cluster_label"]),  # labels are strings
+            "n_messages": int(c["n_messages"]),
+            "mean_length": int(c["mean_length"]),
+            "q10_length": int(c["q10_length"]),
+            "q90_length": int(c["q90_length"]),
+            "messages": c["messages"]
+        } for c in clusters_data],
+        "unclustered_messages": unclustered
+    }
+    
+    # Save to JSON
+    with open(output_path, 'w', encoding='utf-8') as f:
+        json.dump(output_data, f, indent=2, ensure_ascii=False)
 
 
 def save_dendrogram(embeddings: np.ndarray, output_path: str) -> None:
@@ -71,6 +131,14 @@ def cluster_posts(cfg: DictConfig) -> None:
         label=cluster_labels
     )
     report.dump()
+    
+    # Save results as JSON
+    save_clustering_json(
+        text_sequences=text_sequences,
+        cluster_labels=cluster_labels,
+        true_labels=true_labels,
+        output_path=cfg.output.clustering_json_path
+    )
     
     # Save dendrogram
     output_dir = Path(cfg.output.clustered_messages_path).parent

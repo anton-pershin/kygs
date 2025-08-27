@@ -15,6 +15,7 @@ hydra_dir: ${user_settings.hydra_dir}
 output:
   summary_path: ${result_dir}/summary.csv
   clustered_messages_path: ${result_dir}/clustered_messages.csv
+  clustering_json_path: ${result_dir}/clustering_results.json
 
 clustering:
   distance_threshold: 0.5  # arbitrary threshold, tune as needed
