@@ -49,6 +49,11 @@ class TextEmbeddingModel:
                 # shape = [# seq, max # tokens]
                 # batch_dict.attention_mask -> masks for padded tokens 
                 # (zeros and ones as usual), shape = [# seq, max # tokens]
+                if len(batch_text_sequences) == 1:
+                    max_length = min(self.max_input_seq_length, len(batch_text_sequences[0]))
+                else:
+                    max_length = self.max_input_seq_length
+
                 batch_dict = self.tokenizer(
                     batch_text_sequences,
                     max_length=self.max_input_seq_length,
