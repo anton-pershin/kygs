@@ -18,4 +18,4 @@ output:
   clustering_json_path: ${result_dir}/clustering_results.json
 
 clustering:
-  distance_threshold: 0.5  # arbitrary threshold, tune as needed
+  distance_threshold: 0.1  # arbitrary threshold, tune as needed
