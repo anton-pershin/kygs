@@ -1,2 +1,3 @@
 _target_: kygs.message_provider.MessageProvider.from_reddit_posts_json
 json_path: ${dataset_path}/reddit_posts/tiny_clustering_dataset_11/selected.json
+stores_true_labels: true 

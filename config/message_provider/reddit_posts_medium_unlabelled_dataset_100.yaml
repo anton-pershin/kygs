@@ -1,0 +1,3 @@
+_target_: kygs.message_provider.MessageProvider.from_reddit_posts_json
+json_path: ${dataset_path}/reddit_posts/medium_unlabelled_dataset_100/reddit_first_100_posts_20250810_064653.json
+stores_true_labels: false 
