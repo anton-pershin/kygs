@@ -5,8 +5,8 @@ LLM-powered opinion grabber
 
 1. Create a virtual environment, e.g.
 ```bash
-conda create -n infoscout python=3.11
-conda activate infoscout
+conda create -n kygs python=3.11
+conda activate kygs
 ```
 2. Install necessary packages
 ```bash
