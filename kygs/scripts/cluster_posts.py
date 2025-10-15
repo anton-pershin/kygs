@@ -65,7 +65,7 @@ def cluster_posts(cfg: DictConfig) -> None:
     )
 
     # Update message labels
-    for msg, label in zip(mp.messages, cluster_labels):
+    for msg, label in zip(mp.messages, pred_labels):
         msg.label = label
 
     # Save results using configured message handlers
