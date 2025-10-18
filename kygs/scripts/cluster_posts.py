@@ -9,7 +9,7 @@ import time
 
 from kygs.message_provider import MessageProvider
 from kygs.text_embedding import TextEmbeddingModel
-from kygs.clustering import TextClustering
+from kygs.clustering import TextClustering, ClusterListCollection
 from kygs.message_handler import MessageJsonSaver, MessageCsvSaver
 from kygs.utils.common import get_config_path
 from kygs.utils.console import console
@@ -44,14 +44,15 @@ def cluster_posts(cfg: DictConfig) -> None:
     clustering = TextClustering(
         text_embedding_model=text_embedding_model,
         distance_threshold=cfg.clustering.distance_threshold,
+        cluster_collection=ClusterListCollection(),
     )
-    
+
     # Get text sequences and perform clustering
     text_sequences = [msg.text for msg in mp.messages]
     true_labels = [msg.true_label for msg in mp.messages]
     
     start_time = time.time()
-    pred_labels = clustering.fit_predict(text_sequences)
+    pred_labels = clustering.fit_predict(mp.messages)
     time_spent = time.time() - start_time
 
     # Save evaluation metrics

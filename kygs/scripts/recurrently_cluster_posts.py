@@ -11,7 +11,7 @@ from rich.progress import track
 
 from kygs.message_provider import MessageProvider
 from kygs.text_embedding import TextEmbeddingModel
-from kygs.clustering import TextClustering
+from kygs.clustering import TextClustering, ClusterListCollection
 from kygs.message_handler import MessageJsonSaver
 from kygs.utils.common import get_config_path
 from kygs.utils.console import console
@@ -36,12 +36,13 @@ def recurrently_cluster_posts(cfg: DictConfig) -> None:
     clustering = TextClustering(
         text_embedding_model=text_embedding_model,
         distance_threshold=cfg.clustering.distance_threshold,
+        cluster_collection=ClusterListCollection(),
     )
     
     # Initial clustering
     console.print("\nPerforming initial clustering...")
     start_time = time.time()
-    initial_pred_labels = clustering.fit_predict(initial_texts)
+    initial_pred_labels = clustering.fit_predict(initial_mp.messages)
     time_spent = time.time() - start_time
 
     # Update labels in initial message provider
@@ -73,7 +74,7 @@ def recurrently_cluster_posts(cfg: DictConfig) -> None:
     clustering.text_embedding_model.verbose = False
 
     for i, mp in message_iterator:
-        labels = clustering.update_predict([mp.text])
+        labels = clustering.update_predict([mp])
         label = labels[0]
         mp.label = label if label != -1 else None
         

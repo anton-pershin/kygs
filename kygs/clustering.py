@@ -1,6 +1,7 @@
-from typing import Optional, Tuple
+from typing import Protocol, Optional, Tuple, Any
 from pathlib import Path
 import time
+from abc import ABC, abstractmethod
 
 import numpy as np
 from sklearn.cluster import AgglomerativeClustering
@@ -13,11 +14,66 @@ from kygs.utils.console import console
 from kygs.utils.typing import NDArrayInt, NDArrayFloat
 
 
+class HasText(Protocol):
+    text: str
+
+
+class ClusterCollection(ABC):
+    @property
+    @abstractmethod
+    def n_clusters(self):
+        raise NotImplementedError()
+    
+    @abstractmethod
+    def get_centroid(self, i: int) -> NDArrayFloat:
+        raise NotImplementedError()
+
+    @abstractmethod
+    def get_size(self, i: int) -> int:
+        raise NotImplementedError()
+
+    @abstractmethod
+    def add(self, objs: list[HasText], centroid: NDArrayFloat) -> None:
+        raise NotImplementedError()
+        
+    @abstractmethod
+    def update(self, i: int, objs_to_add: list[HasText], new_centroid: NDArrayFloat) -> None:
+        raise NotImplementedError()
+        
+
+class ClusterListCollection(ClusterCollection):
+    def __init__(self):
+        self.centroids: list[NDArrayFloat] = []
+        self.sizes: list[int] = []
+        self.objects: list[list[Any]] = []
+
+    @property
+    def n_clusters(self):
+        return len(self.centroids)
+    
+    def get_centroid(self, i: int) -> NDArrayFloat:
+        return self.centroids[i]
+
+    def get_size(self, i: int) -> int:
+        return self.sizes[i]
+
+    def add(self, objs: list[HasText], centroid: NDArrayFloat) -> None:
+        self.centroids.append(centroid)
+        self.sizes.append(len(objs))
+        self.objects.append(objs)
+        
+    def update(self, i: int, objs_to_add: list[HasText], new_centroid: NDArrayFloat) -> None:
+        self.centroids[i] = new_centroid
+        self.objects[i].extend(objs_to_add)
+        self.sizes[i] += len(objs_to_add)
+
+
 class TextClustering:
     def __init__(
         self,
         text_embedding_model: TextEmbeddingModel,
         distance_threshold: float,
+        cluster_collection: ClusterCollection,
     ) -> None:
         self.text_embedding_model = text_embedding_model
         self.distance_threshold = distance_threshold
@@ -27,14 +83,13 @@ class TextClustering:
             metric='cosine',
             linkage='average'
         )
-        self.cluster_centroids = None
-        self.cluster_sizes = None
+        self.cluster_collection = cluster_collection
 
     def _compute_centroids(
         self,
         embeddings: NDArrayFloat,
         labels: NDArrayInt
-    ) -> Tuple[NDArrayFloat, NDArrayInt]:
+    ) -> Tuple[NDArrayFloat, NDArrayInt, NDArrayInt]:
         """Compute initial centroids and sizes for each cluster."""
         unique_labels = np.unique(labels)
         centroids = []
@@ -45,7 +100,7 @@ class TextClustering:
             size = np.sum(mask)
             centroids.append(centroid)
             sizes.append(size)
-        return np.array(centroids), np.array(sizes)
+        return np.array(centroids), np.array(sizes), unique_labels
 
     def _update_centroid(
         self,
@@ -58,41 +113,54 @@ class TextClustering:
         updated_centroid = centroid + (new_embedding - centroid) / new_size
         return updated_centroid, new_size
 
-    def fit_predict(self, texts: list[str]) -> NDArrayInt:
+    def fit_predict(self, objs: list[HasText]) -> NDArrayInt:
         """Perform initial clustering on texts.
         Returns indices of clusters where -1 means no cluster"""
+        texts = [t.text for t in objs]
         embeddings = self.text_embedding_model.predict(texts)
         labels = self.clustering.fit_predict(embeddings)
-        self.cluster_centroids, self.cluster_sizes = self._compute_centroids(embeddings, labels)
+        # TODO: cluster_sizes is no longer used
+        cluster_centroids, cluster_sizes, cluster_labels = self._compute_centroids(
+            embeddings, labels
+        )
+        for centroid, cluster_label in zip(cluster_centroids, cluster_labels):
+            cluster_objs = [obj for i, obj in enumerate(objs) if labels[i] == cluster_label]
+            self.cluster_collection.add(cluster_objs, centroid)
+
         return labels
 
-    def update_predict(self, texts: list[str]) -> NDArrayInt:
+    def update_predict(self, objs: list[HasText]) -> NDArrayInt:
         """Assign texts to nearest clusters if within threshold."""
-        if self.cluster_centroids is None:
-            return np.array([-1] * len(texts))
+        texts = [t.text for t in objs]
+        if self.cluster_collection.n_clusters == 0:
+            return self.fit_predict(objs)
 
         embeddings = self.text_embedding_model.predict(texts)
         labels = np.full(len(texts), -1)
 
         for i, embedding in enumerate(embeddings):
             # Compute distances to all centroids
-            distances = np.array([
-                cosine(embedding, centroid) for centroid in self.cluster_centroids
+            distances_to_clusters = np.array([
+                cosine(embedding, self.cluster_collection.get_centroid(i)) for i in range(self.cluster_collection.n_clusters)
             ])
             
-            nearest_idx = np.argmin(distances)
-            min_distance = distances[nearest_idx]
+            nearest_cluster_idx = np.argmin(distances_to_clusters)
+            min_distance = distances_to_clusters[nearest_cluster_idx]
             
             # Assign to cluster if within threshold
             if min_distance <= self.distance_threshold:
-                labels[i] = nearest_idx
+                labels[i] = nearest_cluster_idx
                 # Update centroid and size for the assigned cluster
-                self.cluster_centroids[nearest_idx], self.cluster_sizes[nearest_idx] = \
-                    self._update_centroid(
-                        self.cluster_centroids[nearest_idx],
-                        self.cluster_sizes[nearest_idx],
-                        embedding
-                    )
+                updated_centroid, updated_size = self._update_centroid(
+                    self.cluster_collection.get_centroid(nearest_cluster_idx),
+                    self.cluster_collection.get_size(nearest_cluster_idx),
+                    embedding
+                )
+                self.cluster_collection.update(
+                    nearest_cluster_idx,
+                    [objs[i]],
+                    updated_centroid,
+                )
 
         return labels
 
