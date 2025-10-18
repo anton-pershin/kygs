@@ -161,6 +161,8 @@ class TextClustering:
                     [objs[i]],
                     updated_centroid,
                 )
+            else:  # Create a new cluster if not
+                self.cluster_collection.add([objs[i]], embedding)
 
         return labels
 
