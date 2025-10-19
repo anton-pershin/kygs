@@ -135,9 +135,9 @@ class TextClustering:
         if self.cluster_collection.n_clusters == 0:
             if len(objs) == 1:
                 embeddings = self.text_embedding_model.predict(texts)
-                self.cluster_collection.add(objs, embedding[0])
-                labels = np.array([0], dtype=np.int)
-            elif len(objs) > 1::
+                self.cluster_collection.add(objs, embeddings[0])
+                labels = np.array([0], dtype=np.int32)
+            elif len(objs) > 1:
                 labels = self.fit_predict(objs)
             else:
                 raise ValueError("No messages passed to update_predict")
