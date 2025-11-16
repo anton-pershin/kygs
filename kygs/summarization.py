@@ -147,6 +147,7 @@ def _run_summarization_via_llm(
 ) -> list[Summary]:
     responses: list[str] = request_based_on_prompts(
         llm_server_url=llm.url,
+        max_concurrent_requests=llm.max_concurrent_requests,
         system_prompt=system_prompt,
         user_prompts=user_prompts,
         authorization=llm.authorization,
