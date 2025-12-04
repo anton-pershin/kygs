@@ -145,6 +145,11 @@ class MessageProvider:
         splits = []
         split_start_dt = start_dt
         split_end_dt = increment_datetime(start_dt, time_unit)
+
+        # Cover the case where times contain the time interval
+        # shorter than time_unit
+        end_dt = max(end_dt, split_end_dt)
+
         i = 0
         while split_start_dt < end_dt:
             split = self.filter(split_start_dt, split_end_dt)
