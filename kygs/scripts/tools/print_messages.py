@@ -3,7 +3,6 @@ from omegaconf import DictConfig
 
 from kygs.utils.common import get_config_path
 
-
 CONFIG_NAME = "config_print_messages"
 
 

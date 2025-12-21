@@ -2,8 +2,9 @@ defaults:
   - _self_
   - user_settings: user_settings
   - hydra: base
-  - message_provider/reddit_posts_tiny_clustering@initial_message_provider
-  - message_provider/reddit_posts_medium_unlabelled_dataset_100@recurrent_message_provider
+  - message_provider/empty@initial_message_provider
+  - message_provider/synthetic_messages/short_news_10@recurrent_message_provider
+  - clustering: hac
   - embedding: e5
 
 project_path: ${user_settings.project_path}
@@ -20,6 +21,3 @@ output:
 message_handlers:
   - _target_: kygs.message_handler.MessageJsonSaver
     output_path: ${output.clustering_json_path}
-
-clustering:
-  distance_threshold: 0.1  # arbitrary threshold, tune as needed

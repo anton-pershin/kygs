@@ -2,8 +2,9 @@ defaults:
   - _self_
   - user_settings: user_settings
   - hydra: base
-  - message_provider: reddit_posts_tiny_clustering
+  - message_provider: synthetic_messages/short_news_10
   - embedding: e5
+  - clustering: hac
 
 project_path: ${user_settings.project_path}
 dataset_path: ${user_settings.dataset_path}
@@ -13,15 +14,12 @@ hydra_root: ${user_settings.hydra_root}
 hydra_dir: ${user_settings.hydra_dir}
 
 output:
-  summary_path: ${result_dir}/summary.csv
   clustered_messages_path: ${result_dir}/clustered_messages.csv
   clustering_json_path: ${result_dir}/clustering_results.json
+  save_dendrogram: false
 
 message_handlers:
   - _target_: kygs.message_handler.MessageCsvSaver
     output_path: ${output.clustered_messages_path}
   - _target_: kygs.message_handler.MessageJsonSaver
     output_path: ${output.clustering_json_path}
-
-clustering:
-  distance_threshold: 0.1  # arbitrary threshold, tune as needed

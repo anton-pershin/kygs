@@ -1,0 +1,7 @@
+_target_: kygs.clustering.centroid_based.CentroidBasedTextClustering
+_recursive_: True
+text_embedding_model: ${embedding}
+distance_threshold: 0.1
+cluster_collection:
+  _target_: kygs.clustering.centroid_based.CentroidBasedClusterListCollection 
+

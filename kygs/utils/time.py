@@ -3,7 +3,9 @@ import datetime
 from kygs.utils.typing import TimeUnit
 
 
-def datetime_floor(dt: datetime.datetime, unit: TimeUnit = "second") -> datetime.datetime:
+def datetime_floor(
+    dt: datetime.datetime, unit: TimeUnit = "second"
+) -> datetime.datetime:
     if unit == "year":
         return dt.replace(month=1, day=1, hour=0, minute=0, second=0, microsecond=0)
     elif unit == "month":
@@ -20,7 +22,9 @@ def datetime_floor(dt: datetime.datetime, unit: TimeUnit = "second") -> datetime
         raise ValueError(f"Unknown unit: {unit}")
 
 
-def datetime_ceil(dt: datetime.datetime, unit: TimeUnit = "second") -> datetime.datetime:
+def datetime_ceil(
+    dt: datetime.datetime, unit: TimeUnit = "second"
+) -> datetime.datetime:
     floored = datetime_floor(dt, unit)
     if floored == dt:
         return dt
@@ -44,10 +48,8 @@ def datetime_ceil(dt: datetime.datetime, unit: TimeUnit = "second") -> datetime.
 
 
 def increment_datetime(
-    dt: datetime,
-    unit: TimeUnit = "day",
-    amount: int = 1
-) -> datetime:
+    dt: datetime.datetime, unit: TimeUnit = "day", amount: int = 1
+) -> datetime.datetime:
     if unit == "year":
         try:
             # Handle February 29th for non-leap years
@@ -55,15 +57,18 @@ def increment_datetime(
                 return dt.replace(year=dt.year + amount, month=3, day=1)
             return dt.replace(year=dt.year + amount)
         except ValueError:
-            # Handle cases where the day doesn"t exist in the new month (like day 31 in April)
-            return (dt.replace(day=1) + datetime.timedelta(days=31)).replace(year=dt.year + amount, day=dt.day)
-    
+            # Handle cases where the day doesn"t exist in the new month
+            # (like day 31 in April)
+            return (dt.replace(day=1) + datetime.timedelta(days=31)).replace(
+                year=dt.year + amount, day=dt.day
+            )
+
     elif unit == "month":
         new_month = dt.month + amount
         year_offset = (new_month - 1) // 12
         new_month = (new_month - 1) % 12 + 1
         new_year = dt.year + year_offset
-        
+
         try:
             return dt.replace(year=new_year, month=new_month)
         except ValueError:
@@ -75,8 +80,10 @@ def increment_datetime(
             else:
                 next_month = new_month + 1
                 next_year = new_year
-            return datetime(next_year, next_month, 1) - datetime.timedelta(days=1)
-    
+            return datetime.datetime(next_year, next_month, 1) - datetime.timedelta(
+                days=1
+            )
+
     elif unit == "day":
         return dt + datetime.timedelta(days=amount)
     elif unit == "hour":
@@ -87,4 +94,3 @@ def increment_datetime(
         return dt + datetime.timedelta(seconds=amount)
     else:
         raise ValueError(f"Unknown unit: {unit}")
-

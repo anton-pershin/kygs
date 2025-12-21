@@ -1,33 +1,25 @@
-import math
-import time
-import pickle
 from pathlib import Path
 
-import numpy as np
-from rich.table import Table
-import pandas as pd
-import torch.nn.functional as F
-import torch
-from torch import Tensor
-from transformers import AutoTokenizer, AutoModel, PreTrainedTokenizer, PreTrainedModel
 import hydra
 import hydra.utils
+import numpy as np
+import pandas as pd
 from omegaconf import DictConfig
+from rich.table import Table
 
-from kygs.message_provider import MessageProvider
 from kygs.classifier import TextClassifier
+from kygs.message_provider import MessageProvider
 from kygs.text_embedding import TextEmbeddingModel
-from kygs.utils.typing import NDArrayInt, NDArrayFloat
 from kygs.utils.common import get_config_path, set_cuda_visible_devices
 from kygs.utils.console import console
-
+from kygs.utils.typing import NDArrayFloat, NDArrayInt
 
 CONFIG_NAME = "config_train_text_classifier"
 
 
 def print_dataset_stats(name: str, mp: MessageProvider, labels: list[str]) -> None:
     total_samples = len(mp.messages)
-    
+
     # Count samples per label
     label_counts = {}
     for label in labels:
@@ -39,18 +31,13 @@ def print_dataset_stats(name: str, mp: MessageProvider, labels: list[str]) -> No
     table = Table(title=f"{name} Dataset Statistics")
     table.add_column("Metric", style="cyan")
     table.add_column("Value", style="green")
-    
+
     table.add_row("Total samples", str(total_samples))
     for label, (count, percentage) in label_counts.items():
-        table.add_row(
-            f"Label '{label}'",
-            f"{count} ({percentage:.1f}%)"
-        )
-    
+        table.add_row(f"Label '{label}'", f"{count} ({percentage:.1f}%)")
+
     console.print(table)
     console.print()
-
-    console.print(f"Saved {total_samples} classified message results to {cfg.result_dir}")
 
 
 def get_text_sequences(mp: MessageProvider) -> list[str]:
@@ -63,7 +50,9 @@ def ensure_labels_are_valid(
 ) -> None:
     for i, m in enumerate(mp.messages):
         assert m.label is not None, f"Label is None for message #{i}"
-        assert m.label in labels, f"Label {m.label} not found in the list of available labels"
+        assert (
+            m.label in labels
+        ), f"Label {m.label} not found in the list of available labels"
 
 
 def prepare_xy(
@@ -74,10 +63,10 @@ def prepare_xy(
     text_sequences = get_text_sequences(mp)
     text_embeddings = text_embedding_model.predict(text_sequences)
     numeric_labels = np.array(
-        [labels.index(m.label) for m in mp.messages],
+        [labels.index(m.label) for m in mp.messages],  # type: ignore
         dtype=np.int32,
-    )  # TODO: slow
-    
+    )  # TODO: slow and clumsy wrt. type hints
+
     return text_embeddings, numeric_labels
 
 
@@ -85,7 +74,7 @@ def save_prediction_details(
     text_sequences: list[str],
     y_true: NDArrayInt,
     y_pred: NDArrayInt,
-    file_path: str,
+    file_path: str | Path,
 ):
     df = pd.DataFrame(
         {
@@ -114,13 +103,13 @@ def train_text_classifier(cfg: DictConfig) -> None:
 
     text_embedding_model = hydra.utils.instantiate(cfg.embedding)
 
-    X_train, y_train = prepare_xy(
+    x_train, y_train = prepare_xy(
         mp=train_mp,
         labels=labels,
         text_embedding_model=text_embedding_model,
     )
 
-    X_test, y_test = prepare_xy(
+    x_test, y_test = prepare_xy(
         mp=test_mp,
         labels=labels,
         text_embedding_model=text_embedding_model,
@@ -132,21 +121,21 @@ def train_text_classifier(cfg: DictConfig) -> None:
         model_path=cfg.classifier.model_path,
         labels=labels,
     )
-    classifier.fit(X_train, y_train)
+    classifier.fit(x_train, y_train)
     classifier.print_classification_report(
         title="train",
-        X=X_train,
+        x=x_train,
         y_true=y_train,
     )
     classifier.print_classification_report(
         title="test",
-        X=X_test,
+        x=x_test,
         y_true=y_test,
     )
 
     classifier.save_model()
 
-    y_train_pred = classifier.predict(X_train) 
+    y_train_pred = classifier.predict(x_train)
     save_prediction_details(
         text_sequences=get_text_sequences(train_mp),
         y_true=y_train,
@@ -154,7 +143,7 @@ def train_text_classifier(cfg: DictConfig) -> None:
         file_path=Path(cfg.result_dir) / "train_prediction_details.csv",
     )
 
-    y_test_pred = classifier.predict(X_test) 
+    y_test_pred = classifier.predict(x_test)
     save_prediction_details(
         text_sequences=get_text_sequences(test_mp),
         y_true=y_test,
@@ -169,4 +158,3 @@ if __name__ == "__main__":
         config_name=CONFIG_NAME,
         version_base="1.3",
     )(train_text_classifier)()
-

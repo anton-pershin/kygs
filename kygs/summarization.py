@@ -1,14 +1,14 @@
 import datetime
-from dataclasses import dataclass
 import json
+from dataclasses import dataclass
 from typing import Optional
-
-from rally.llm import Llm
-from rally.interaction import request_based_on_prompts
-from rally.thinking import THINKING_REMOVERS
 
 from kygs.message_provider import MessageProvider
 from kygs.utils.typing import TimeUnit
+
+from rally.interaction import request_based_on_prompts  # type: ignore # pylint: disable=import-error # isort: skip
+from rally.llm import Llm  # type: ignore # pylint: disable=import-error # isort: skip
+from rally.thinking import THINKING_REMOVERS  # type: ignore # pylint: disable=import-error # isort: skip
 
 
 @dataclass
@@ -30,7 +30,7 @@ def summarize_posts(
     user_prompts = []
     start_dts = []
     end_dts = []
-    for i, message_collection in enumerate(message_splits):
+    for message_collection in message_splits:
         if len(message_collection.messages) == 0:
             continue
 
@@ -57,7 +57,9 @@ def summarize_posts(
         user_prompts=user_prompts,
         start_dts=start_dts,
         end_dts=end_dts,
-        progress_title=f"Summarizing {len(user_prompts)} message collections" if verbose else None
+        progress_title=(
+            f"Summarizing {len(user_prompts)} message collections" if verbose else None
+        ),
     )
 
 
@@ -70,10 +72,10 @@ def summarize_summaries(
     verbose: bool = False,
 ) -> list[Summary]:
     user_prompts = []
-    start_dts = []
-    end_dts = []
+    start_dts: list[datetime.datetime] = []
+    end_dts: list[datetime.datetime] = []
     n_characters = 0
-    cur_summaries_buffer = []
+    cur_summaries_buffer: list[Summary] = []
     cur_start_dt = None
     cur_end_dt = None
     for summary in summary_collection:
@@ -83,6 +85,12 @@ def summarize_summaries(
                 user_prompt_template=user_prompt_template,
             )
             user_prompts.append(user_prompt)
+            if cur_start_dt is None or cur_end_dt is None:
+                raise SummarizationException(
+                    "Got None valued start dt or end while "
+                    "splitting the summary collection"
+                )
+
             start_dts.append(cur_start_dt)
             end_dts.append(cur_end_dt)
 
@@ -96,6 +104,11 @@ def summarize_summaries(
             cur_start_dt = summary.start_dt
         cur_end_dt = summary.end_dt
         n_characters += len(summary.text)
+
+    if cur_start_dt is None or cur_end_dt is None:
+        raise SummarizationException(
+            "Got None valued start dt or end after splitting the summary collection"
+        )
 
     # Process last user prompt
     if cur_summaries_buffer:
@@ -113,7 +126,9 @@ def summarize_summaries(
         user_prompts=user_prompts,
         start_dts=start_dts,
         end_dts=end_dts,
-        progress_title=f"Summarizing {len(user_prompts)} summary collections" if verbose else None
+        progress_title=(
+            f"Summarizing {len(user_prompts)} summary collections" if verbose else None
+        ),
     )
 
 
@@ -157,9 +172,11 @@ def _run_summarization_via_llm(
     responses_wo_thinking = [THINKING_REMOVERS[llm.model_family](p) for p in responses]
 
     summary_collection = [
-        Summary(text, start_dt, end_dt) 
+        Summary(text, start_dt, end_dt)
         for text, start_dt, end_dt in zip(responses_wo_thinking, start_dts, end_dts)
     ]
     return summary_collection
-    
 
+
+class SummarizationException(Exception):
+    pass

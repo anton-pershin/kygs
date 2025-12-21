@@ -1,21 +1,19 @@
 from __future__ import annotations
-from dataclasses import dataclass
-import json
+
 import datetime
-import math
+import json
+from dataclasses import dataclass
 from functools import reduce
+from typing import Optional
 
 import pandas as pd
-from rich.panel import Panel
 from rich.markdown import Markdown
+from rich.panel import Panel
 
 from kygs.utils.console import console
+from kygs.utils.time import datetime_ceil, datetime_floor, increment_datetime
 from kygs.utils.typing import TimeUnit
-from kygs.utils.time import (
-    datetime_floor,
-    datetime_ceil,
-    increment_datetime,
-)
+
 
 @dataclass
 class Message:
@@ -42,8 +40,31 @@ class MessageProvider:
         self.messages = messages
 
     @classmethod
+    def create_empty(cls) -> MessageProvider:
+        return cls([])
+
+    @classmethod
+    def from_synthetic_messages_json(cls, json_path: str) -> MessageProvider:
+        with open(json_path, "r", encoding="utf-8") as f:
+            d = json.load(f)
+
+        messages = []
+        for m in d["messages"]:
+            text = m["text"]
+            time = datetime.datetime.now()
+            author = "synthetic"
+            true_label: str | None = None
+            if "label" in m:
+                true_label = m["label"]
+
+            msg = Message(text, time, author, label=None, true_label=true_label)
+            messages.append(msg)
+
+        return cls(messages)
+
+    @classmethod
     def from_telegram_messages_json(cls, json_path: str) -> MessageProvider:
-        with open(json_path, "r") as f:
+        with open(json_path, "r", encoding="utf-8") as f:
             d = json.load(f)
 
         messages = []
@@ -58,17 +79,19 @@ class MessageProvider:
             messages.append(msg)
 
         return cls(messages)
-        
+
     @classmethod
-    def from_reddit_posts_json(cls, json_path: str, stores_true_labels: bool) -> MessageProvider:
-        with open(json_path, "r") as f:
+    def from_reddit_posts_json(
+        cls, json_path: str, stores_true_labels: bool
+    ) -> MessageProvider:
+        with open(json_path, "r", encoding="utf-8") as f:
             d = json.load(f)
 
         messages = []
         for m in d["posts"]:
             # Skip empty messages (typically, images/video with title only)
             text = m["selftext"]
-            if not text: 
+            if not text:
                 continue
 
             time = datetime.datetime.utcfromtimestamp(int(m["created_utc"]))
@@ -85,14 +108,16 @@ class MessageProvider:
         return cls(messages)
 
     @classmethod
-    def from_reddit_posts_csv(cls, csv_path: str, stores_true_labels: bool) -> MessageProvider:
+    def from_reddit_posts_csv(
+        cls, csv_path: str, stores_true_labels: bool
+    ) -> MessageProvider:
         df = pd.read_csv(csv_path)
 
         messages = []
         for _, row in df.iterrows():
             # Skip empty messages (typically, images/video with title only)
             text = row["messages"]
-            if not text: 
+            if not text:
                 continue
 
             time = datetime.datetime.now()
@@ -110,7 +135,11 @@ class MessageProvider:
 
     @classmethod
     def from_message_providers(cls, *mps: MessageProvider) -> MessageProvider:
-        messages = reduce(lambda x, y: x + y, [mp.messages for mp in mps], [])
+        messages: list[Message] = reduce(
+            lambda x, y: x + y,
+            [mp.messages for mp in mps],
+            [],
+        )
         return cls(messages)
 
     def append_messages(self, other_mp: MessageProvider):
@@ -121,7 +150,7 @@ class MessageProvider:
             console.print(f"Item {i} of {len(self.messages)}")
             content = f"## {message.author}\n\n"
             content += f"{message.text}\n\n"
-        
+
             panel = Panel(
                 Markdown(content),
                 title=f"[bold]{message.time}[/bold]",
@@ -166,4 +195,3 @@ class MessageProvider:
             split_end_dt = increment_datetime(start_dt, time_unit, amount=i + 1)
 
         return splits
-

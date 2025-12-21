@@ -1,0 +1,2 @@
+_target_: kygs.message_provider.MessageProvider.from_synthetic_messages_json
+json_path: ${dataset_path}/synthetic_messages/short_news_10/short_news_10_real.json

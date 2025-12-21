@@ -1,22 +1,17 @@
-from pathlib import Path
-from datetime import datetime, UTC
-import json
-
 import hydra
 from omegaconf import DictConfig
 
+from kygs.annotation.base import MessageAnnotation
 from kygs.utils.common import get_config_path
 from kygs.utils.console import console
-from kygs.annotation.base import MessageAnnotation
 from kygs.utils.report import CsvReport
-
 
 CONFIG_NAME = "config_annotate"
 
 
 def annotate(cfg: DictConfig) -> None:
     mp = hydra.utils.call(cfg.message_provider)
-    
+
     # Instantiate annotator from config
     annotator: MessageAnnotation = hydra.utils.instantiate(cfg.annotator)
 
@@ -31,7 +26,9 @@ def annotate(cfg: DictConfig) -> None:
     )
     annotated_dataset_csv.dump()
 
-    console.print(f"Saved {len(labels)} annotated messages to {cfg.annotated_dataset_path}")
+    console.print(
+        f"Saved {len(labels)} annotated messages to {cfg.annotated_dataset_path}"
+    )
 
 
 if __name__ == "__main__":
