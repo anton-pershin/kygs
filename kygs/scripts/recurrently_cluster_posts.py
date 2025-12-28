@@ -48,13 +48,11 @@ def recurrently_cluster_posts(cfg: DictConfig) -> None:
     # Process streaming messages one by one
     console.print("\nProcessing streaming messages...")
 
-    # TODO: debug
-#    message_iterator = track(
-#        enumerate(streaming_mp.messages),
-#        description="Assigning messages to clusters",
-#        total=len(streaming_mp.messages),
-#    )
-    message_iterator = enumerate(streaming_mp.messages)
+    message_iterator = track(
+        enumerate(streaming_mp.messages),
+        description="Assigning messages to clusters",
+        total=len(streaming_mp.messages),
+    )
     clustering.text_embedding_model.verbose = False
 
     for i, mp in message_iterator:
