@@ -1,0 +1,5 @@
+black
+pylint
+isort
+mypy
+pytest
