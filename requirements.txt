@@ -8,5 +8,6 @@ transformers
 accelerate
 scikit-learn
 matplotlib
+pandas
 
 rally @ git+https://github.com/anton-pershin/rally.git
