@@ -83,10 +83,14 @@ class HacBasedTextClustering(
         embeddings = self.embedding_provider(objs)
         labels = self.clustering.fit_predict(embeddings)
         cluster_ids = np.unique(labels)
-        for i in cluster_ids:
-            cluster_objs = [obj for i, obj in enumerate(objs) if labels[i] == i]
+        for cluster_id in cluster_ids:
+            cluster_objs = [
+                obj for i, obj in enumerate(objs) if labels[i] == cluster_id
+            ]
             cluster_embeddings = [
-                embedding for i, embedding in enumerate(embeddings) if labels[i] == i
+                embedding
+                for i, embedding in enumerate(embeddings)
+                if labels[i] == cluster_id
             ]
             self.cluster_collection.add(cluster_objs, cluster_embeddings)
         return labels
