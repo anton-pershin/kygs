@@ -8,8 +8,8 @@ from scipy.spatial.distance import cosine
 from sklearn.cluster import AgglomerativeClustering
 from sklearn.metrics import adjusted_rand_score, normalized_mutual_info_score
 
-from kygs.clustering.base import ClusterCollection, HasText, TextClustering
-from kygs.text_embedding import TextEmbeddingModel
+from kygs.clustering.base import (ClusterCollection, EmbeddingProvider, HasText,
+                                  TextClustering, TextClusteringViaEmbeddings)
 from kygs.utils.console import console
 from kygs.utils.report import CsvReport
 from kygs.utils.typing import NDArrayFloat, NDArrayInt
@@ -53,15 +53,16 @@ class FullEmbeddingClusterListCollection(ClusterCollection):
         self.embeddings[i].extend(embeddings)
 
 
-class HacBasedTextClustering(TextClustering[FullEmbeddingClusterCollection]):
+class HacBasedTextClustering(
+    TextClusteringViaEmbeddings[FullEmbeddingClusterCollection]
+):
     def __init__(
         self,
-        text_embedding_model: TextEmbeddingModel,
+        embedding_provider: EmbeddingProvider,
         distance_threshold: float,
         cluster_collection: FullEmbeddingClusterCollection,
         linkage: Linkage = "average",
     ) -> None:
-        self.text_embedding_model = text_embedding_model
         self.distance_threshold = distance_threshold
         self.clustering = AgglomerativeClustering(
             distance_threshold=distance_threshold,
@@ -70,7 +71,7 @@ class HacBasedTextClustering(TextClustering[FullEmbeddingClusterCollection]):
             linkage=linkage,
         )
         self.linkage = linkage
-        super().__init__(cluster_collection)
+        super().__init__(cluster_collection, embedding_provider)
 
     def fit_predict(self, objs: list[HasText]) -> NDArrayInt:
         """Perform initial clustering on texts via HAC.
@@ -79,8 +80,7 @@ class HacBasedTextClustering(TextClustering[FullEmbeddingClusterCollection]):
         if not objs:
             return np.array([], dtype=np.int32)
 
-        texts = [t.text for t in objs]
-        embeddings = self.text_embedding_model.predict(texts)
+        embeddings = self.embedding_provider(objs)
         labels = self.clustering.fit_predict(embeddings)
         cluster_ids = np.unique(labels)
         for i in cluster_ids:
@@ -95,14 +95,12 @@ class HacBasedTextClustering(TextClustering[FullEmbeddingClusterCollection]):
         # TODO: need to adapt to true HAC
         """Assign texts to nearest clusters if within threshold."""
 
-        texts = [t.text for t in objs]
-
         # Address the case where there are no clusters yet
         # (the very beginning in the streaming scenario)
         labels: NDArrayInt
         if self.cluster_collection.n_clusters == 0:
             if len(objs) == 1:
-                embeddings = self.text_embedding_model.predict(texts)
+                embeddings = self.embedding_provider(objs)
                 self.cluster_collection.add(objs, [embeddings[0]])
                 labels = np.array([0], dtype=np.int32)
             elif len(objs) > 1:
@@ -123,9 +121,8 @@ class HacBasedTextClustering(TextClustering[FullEmbeddingClusterCollection]):
         the clusters using the average linkage and then choose the nearest one.
         according to this metric.
         """
-        texts = [t.text for t in objs]
-        embeddings = self.text_embedding_model.predict(texts)
-        labels = np.full(len(texts), -1)
+        embeddings = self.embedding_provider(objs)
+        labels = np.full(len(objs), -1)
 
         for i, embedding in enumerate(embeddings):
             # Compute distances from embedding to each cluster

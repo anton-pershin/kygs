@@ -1,6 +1,6 @@
 _target_: kygs.clustering.hac.HacBasedTextClustering
 _recursive_: True
-text_embedding_model: ${embedding}
+embedding_provider: ${embedding_provider}
 distance_threshold: 0.1
 cluster_collection:
   _target_: kygs.clustering.hac.FullEmbeddingClusterListCollection

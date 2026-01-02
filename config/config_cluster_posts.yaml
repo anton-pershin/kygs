@@ -4,6 +4,7 @@ defaults:
   - hydra: base
   - message_provider: synthetic_messages/short_news_10
   - embedding: e5
+  - embedding_provider: via_model
   - clustering: hac
 
 project_path: ${user_settings.project_path}

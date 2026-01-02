@@ -1,0 +1,2 @@
+_target_: kygs.clustering.base.EmbeddingProviderViaModel
+text_embedding_model: ${embedding}

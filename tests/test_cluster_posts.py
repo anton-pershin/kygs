@@ -96,6 +96,21 @@ def embedding_cfg():
 
 
 @pytest.fixture
+def embedding_provider_via_model_cfg(embedding_cfg):
+    return {
+        "_target_": "kygs.clustering.base.EmbeddingProviderViaModel",
+        "text_embedding_model": embedding_cfg,
+    }
+
+
+@pytest.fixture
+def embedding_provider_via_object_attribute_cfg():
+    return {
+        "_target_": "kygs.clustering.base.EmbeddingProviderViaObjectAttribute",
+    }
+
+
+@pytest.fixture
 def message_handlers_cfg():
     return [
         {
@@ -112,11 +127,11 @@ def message_provider_cfg():
 
 
 @pytest.fixture
-def hac_clustering_cfg(embedding_cfg):
+def hac_clustering_with_embedding_model_cfg(embedding_provider_via_model_cfg):
     return {
         "_target_": "kygs.clustering.hac.HacBasedTextClustering",
         "_recursive_": True,
-        "text_embedding_model": embedding_cfg,
+        "embedding_provider": embedding_provider_via_model_cfg,
         "distance_threshold": 0.1,
         "cluster_collection": {
             "_target_": "kygs.clustering.hac.FullEmbeddingClusterListCollection",
@@ -126,11 +141,38 @@ def hac_clustering_cfg(embedding_cfg):
 
 
 @pytest.fixture
-def centroid_based_clustering_cfg(embedding_cfg):
+def hac_clustering_with_embedding_attribute_cfg(embedding_provider_via_object_attribute_cfg):
+    return {
+        "_target_": "kygs.clustering.hac.HacBasedTextClustering",
+        "_recursive_": True,
+        "embedding_provider": embedding_provider_via_object_attribute_cfg,
+        "distance_threshold": 0.1,
+        "cluster_collection": {
+            "_target_": "kygs.clustering.hac.FullEmbeddingClusterListCollection",
+        },
+        "linkage": "average",
+    }
+
+
+@pytest.fixture
+def centroid_based_clustering_with_embedding_model_cfg(embedding_provider_via_model_cfg):
     return {
         "_target_": "kygs.clustering.centroid_based.CentroidBasedTextClustering",
         "_recursive_": True,
-        "text_embedding_model": embedding_cfg,
+        "embedding_provider": embedding_provider_via_model_cfg,
+        "distance_threshold": 0.1,
+        "cluster_collection": {
+            "_target_": "kygs.clustering.centroid_based.CentroidBasedClusterListCollection",
+        },
+    }
+
+
+@pytest.fixture
+def centroid_based_clustering_with_embedding_attribute_cfg(embedding_provider_via_object_attribute_cfg):
+    return {
+        "_target_": "kygs.clustering.centroid_based.CentroidBasedTextClustering",
+        "_recursive_": True,
+        "embedding_provider": embedding_provider_via_object_attribute_cfg,
         "distance_threshold": 0.1,
         "cluster_collection": {
             "_target_": "kygs.clustering.centroid_based.CentroidBasedClusterListCollection",
@@ -150,6 +192,7 @@ def create_message_dict_provider() -> MessageProvider:
             label=None,
             true_label=raw_m["true_label"],
         )
+        m.embedding = raw_m["embedding"]
         message_collection.append(m)
 
     return MessageProvider(messages=message_collection)
@@ -162,39 +205,85 @@ def clear_message_handler_dict_storage() -> None:
 
 
 class TestClusterPosts:
-    def test_hac(
+    def test_hac_with_embedding_model(
         self,
         cfg: DictConfig,
         embedding_cfg,
+        embedding_provider_via_model_cfg,
         message_provider_cfg,
         message_handlers_cfg,
-        hac_clustering_cfg,
+        hac_clustering_with_embedding_model_cfg,
         monkeypatch
     ):
         # Add mocks
         cfg.embedding = embedding_cfg
+        cfg.embedding_provider = embedding_provider_via_model_cfg
         cfg.message_provider = message_provider_cfg
         cfg.message_handlers = message_handlers_cfg
-        cfg.clustering = hac_clustering_cfg
+        cfg.clustering = hac_clustering_with_embedding_model_cfg
         cfg.output.save_dendrogram = False
 
         # Run and check
         run_and_check_clustering_based_on_cfg(cluster_posts, cfg)
 
-    def test_centroid_based(
+    def test_hac_with_embedding_attribute(
         self,
         cfg: DictConfig,
         embedding_cfg,
+        embedding_provider_via_object_attribute_cfg,
         message_provider_cfg,
         message_handlers_cfg,
-        centroid_based_clustering_cfg,
+        hac_clustering_with_embedding_attribute_cfg,
         monkeypatch
     ):
         # Add mocks
         cfg.embedding = embedding_cfg
+        cfg.embedding_provider = embedding_provider_via_object_attribute_cfg
         cfg.message_provider = message_provider_cfg
         cfg.message_handlers = message_handlers_cfg
-        cfg.clustering = centroid_based_clustering_cfg
+        cfg.clustering = hac_clustering_with_embedding_attribute_cfg
+        cfg.output.save_dendrogram = False
+
+        # Run and check
+        run_and_check_clustering_based_on_cfg(cluster_posts, cfg)
+
+    def test_centroid_based_with_embedding_model(
+        self,
+        cfg: DictConfig,
+        embedding_cfg,
+        embedding_provider_via_model_cfg,
+        message_provider_cfg,
+        message_handlers_cfg,
+        centroid_based_clustering_with_embedding_model_cfg,
+        monkeypatch
+    ):
+        # Add mocks
+        cfg.embedding = embedding_cfg
+        cfg.embedding_provider = embedding_provider_via_model_cfg
+        cfg.message_provider = message_provider_cfg
+        cfg.message_handlers = message_handlers_cfg
+        cfg.clustering = centroid_based_clustering_with_embedding_model_cfg
+        cfg.output.save_dendrogram = False
+
+        # Run and check
+        run_and_check_clustering_based_on_cfg(cluster_posts, cfg)
+
+    def test_centroid_based_with_embedding_attribute(
+        self,
+        cfg: DictConfig,
+        embedding_cfg,
+        embedding_provider_via_object_attribute_cfg,
+        message_provider_cfg,
+        message_handlers_cfg,
+        centroid_based_clustering_with_embedding_attribute_cfg,
+        monkeypatch
+    ):
+        # Add mocks
+        cfg.embedding = embedding_cfg
+        cfg.embedding_provider = embedding_provider_via_object_attribute_cfg
+        cfg.message_provider = message_provider_cfg
+        cfg.message_handlers = message_handlers_cfg
+        cfg.clustering = centroid_based_clustering_with_embedding_attribute_cfg
         cfg.output.save_dendrogram = False
 
         # Run and check
@@ -216,5 +305,4 @@ def run_and_check_clustering_based_on_cfg(cluster_func, patched_cfg: DictConfig)
 
     # Each of the clusters should be identical to the groundtruth
     assert (MESSAGE_HANDLER_DICT_STORAGE["clusters"][0] == true_cluster_1 and MESSAGE_HANDLER_DICT_STORAGE["clusters"][1] == true_cluster_2) or (MESSAGE_HANDLER_DICT_STORAGE["clusters"][0] == true_cluster_2 and MESSAGE_HANDLER_DICT_STORAGE["clusters"][1] == true_cluster_1)
-
 

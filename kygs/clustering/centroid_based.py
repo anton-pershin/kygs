@@ -4,7 +4,8 @@ from typing import Any, Optional, Protocol
 import numpy as np
 from scipy.spatial.distance import cosine
 
-from kygs.clustering.base import ClusterCollection, HasText, TextClustering
+from kygs.clustering.base import (ClusterCollection, EmbeddingProvider, HasText,
+                                  TextClusteringViaEmbeddings)
 from kygs.text_embedding import TextEmbeddingModel
 from kygs.utils.typing import NDArrayFloat, NDArrayInt
 
@@ -45,16 +46,17 @@ class CentroidBasedClusterListCollection(CentroidBasedClusterCollection):
         self.sizes[i] += len(objs_to_add)
 
 
-class CentroidBasedTextClustering(TextClustering[CentroidBasedClusterCollection]):
+class CentroidBasedTextClustering(
+    TextClusteringViaEmbeddings[CentroidBasedClusterCollection]
+):
     def __init__(
         self,
-        text_embedding_model: TextEmbeddingModel,
+        embedding_provider: EmbeddingProvider,
         distance_threshold: float,
         cluster_collection: CentroidBasedClusterCollection,
     ) -> None:
-        self.text_embedding_model = text_embedding_model
         self.distance_threshold = distance_threshold
-        super().__init__(cluster_collection)
+        super().__init__(cluster_collection, embedding_provider)
 
     def _compute_centroids(
         self, embeddings: NDArrayFloat, labels: NDArrayInt
@@ -96,14 +98,12 @@ class CentroidBasedTextClustering(TextClustering[CentroidBasedClusterCollection]
     def update_predict(self, objs: list[HasText]) -> NDArrayInt:
         """Assign texts to nearest clusters if within threshold."""
 
-        texts = [t.text for t in objs]
-
         # Address the case where there are no clusters yet
         # (the very beginning in the streaming scenario)
         labels: NDArrayInt
         if self.cluster_collection.n_clusters == 0:
             if len(objs) == 1:
-                embeddings = self.text_embedding_model.predict(texts)
+                embeddings = self.embedding_provider(objs)
                 self.cluster_collection.add(objs, embeddings[0])
                 labels = np.array([0], dtype=np.int32)
             elif len(objs) > 1:
@@ -120,9 +120,8 @@ class CentroidBasedTextClustering(TextClustering[CentroidBasedClusterCollection]
         self, objs: list[HasText]
     ) -> NDArrayInt:
         """Assign texts to nearest clusters assuming that the latter do exist."""
-        texts = [t.text for t in objs]
-        embeddings = self.text_embedding_model.predict(texts)
-        labels = np.full(len(texts), -1)
+        embeddings = self.embedding_provider(objs)
+        labels = np.full(len(objs), -1)
 
         for i, embedding in enumerate(embeddings):
             # Compute distances to all centroids

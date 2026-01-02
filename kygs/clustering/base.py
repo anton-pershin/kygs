@@ -1,9 +1,10 @@
 from abc import ABC, abstractmethod
-from typing import Generic, Optional, Protocol, TypeVar
+from typing import Any, Generic, Optional, Protocol, TypeVar
 
 import numpy as np
 from sklearn.metrics import adjusted_rand_score, normalized_mutual_info_score
 
+from kygs.text_embedding import TextEmbeddingModel
 from kygs.utils.console import console
 from kygs.utils.report import CsvReport
 from kygs.utils.typing import NDArrayFloat, NDArrayInt
@@ -11,6 +12,10 @@ from kygs.utils.typing import NDArrayFloat, NDArrayInt
 
 class HasText(Protocol):
     text: str
+
+
+class HasEmbedding(Protocol):
+    embedding: NDArrayFloat
 
 
 class ClusterCollection(ABC):
@@ -30,6 +35,26 @@ class ClusterCollection(ABC):
     @abstractmethod
     def update(self, i: int, objs_to_add: list[HasText], *args) -> None:
         raise NotImplementedError()
+
+
+class EmbeddingProvider(Protocol):
+    def __call__(self, objs: list[Any]) -> NDArrayFloat: ...
+
+
+class EmbeddingProviderViaModel:
+    def __init__(self, text_embedding_model: TextEmbeddingModel) -> None:
+        self.text_embedding_model = text_embedding_model
+
+    def __call__(self, objs: list[HasText]) -> NDArrayFloat:
+        texts = [t.text for t in objs]
+        embeddings = self.text_embedding_model.predict(texts)
+        return embeddings
+
+
+class EmbeddingProviderViaObjectAttribute:
+    def __call__(self, objs: list[HasEmbedding]) -> NDArrayFloat:
+        embeddings = np.array([obj.embedding for obj in objs])
+        return embeddings
 
 
 ClusterCollectionT = TypeVar("ClusterCollectionT", bound=ClusterCollection)
@@ -109,3 +134,13 @@ class TextClustering(Generic[ClusterCollectionT], ABC):
             metrics_report = CsvReport(metrics_path)
             metrics_report.add_record(**metrics)
             metrics_report.dump()
+
+
+class TextClusteringViaEmbeddings(TextClustering[ClusterCollectionT]):
+    def __init__(
+        self,
+        cluster_collection: ClusterCollectionT,
+        embedding_provider: EmbeddingProvider,
+    ) -> None:
+        self.cluster_collection = cluster_collection
+        self.embedding_provider = embedding_provider

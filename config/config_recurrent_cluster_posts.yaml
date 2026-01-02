@@ -6,6 +6,7 @@ defaults:
   - message_provider/synthetic_messages/short_news_10@recurrent_message_provider
   - clustering: hac
   - embedding: e5
+  - embedding_provider: via_model
 
 project_path: ${user_settings.project_path}
 dataset_path: ${user_settings.dataset_path}
