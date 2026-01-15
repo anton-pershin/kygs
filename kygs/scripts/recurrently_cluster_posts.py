@@ -53,7 +53,6 @@ def recurrently_cluster_posts(cfg: DictConfig) -> None:
         description="Assigning messages to clusters",
         total=len(streaming_mp.messages),
     )
-    clustering.text_embedding_model.verbose = False
 
     for i, mp in message_iterator:
         labels = clustering.update_predict([mp])
