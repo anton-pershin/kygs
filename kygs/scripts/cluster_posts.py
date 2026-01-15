@@ -35,7 +35,6 @@ def cluster_posts(cfg: DictConfig) -> None:
     mp = hydra.utils.call(cfg.message_provider)
 
     # Initialize clustering
-    text_embedding_model = hydra.utils.instantiate(cfg.embedding)
     clustering = hydra.utils.instantiate(cfg.clustering)
 
     # Get text sequences and perform clustering
@@ -67,6 +66,7 @@ def cluster_posts(cfg: DictConfig) -> None:
 
     # Save dendrogram
     if cfg.output.save_dendrogram:
+        text_embedding_model = hydra.utils.instantiate(cfg.embedding)
         embeddings = text_embedding_model.predict(text_sequences)
         output_dir = Path(cfg.output.clustered_messages_path).parent
         save_dendrogram(embeddings, str(output_dir / "clustering_dendrogram.png"))
