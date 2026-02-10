@@ -1,0 +1,38 @@
+defaults:
+  - _self_
+  - user_settings: user_settings
+  - hydra: base
+  - labels: texting_or_news
+  - message_provider/synthetic_messages/medium_texting_and_news_2000/train@train_message_provider
+  - message_provider/synthetic_messages/medium_texting_and_news_2000/test@test_message_provider
+
+project_path: ${user_settings.project_path}
+dataset_path: ${user_settings.dataset_path}
+model_path: ${user_settings.model_path}/lightweight_classifier
+result_dir: ${user_settings.hydra_dir}
+hydra_root: ${user_settings.hydra_root}
+hydra_dir: ${user_settings.hydra_dir}
+
+cuda_visible_devices: [1]
+verbose: true
+
+spacy_model: ru_core_news_sm
+
+vectorizer:
+  ngram_range: [1, 2]
+  max_features: null
+  min_df: 2
+  max_df: 0.95
+  use_idf: true
+  smooth_idf: true
+  sublinear_tf: false
+  stop_words: null
+  lowercase: true
+  strip_punct: true
+  strip_numeric: true
+  lemmatize: true
+  keep_pos: null
+
+classifier:
+  alpha: 0.5
+  fit_prior: true

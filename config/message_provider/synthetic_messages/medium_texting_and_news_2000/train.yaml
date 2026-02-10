@@ -1,0 +1,2 @@
+_target_: kygs.message_provider.MessageProvider.from_telegram_messages_csv
+csv_path: ${dataset_path}/synthetic_messages/medium_texting_and_news_2000/medium_texting_and_news_1600_train.csv

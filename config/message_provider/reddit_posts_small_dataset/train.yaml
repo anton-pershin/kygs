@@ -1,4 +1,4 @@
 _target_: kygs.message_provider.MessageProvider.from_reddit_posts_csv
 csv_path: ${dataset_path}/reddit_posts/small_dataset_100/annotated_posts.csv
-stores_true_labels: true
+stores_true_labels: false
 

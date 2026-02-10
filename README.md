@@ -26,26 +26,21 @@ python kygs/scripts/XXX.py
 
 Collects recent posts from specified subreddits within a given time window. Posts are saved in JSON format with metadata about the collection.
 
-#### Configuration
-
-1. In `user_settings.yaml`, set up your Reddit API credentials:
-   ```yaml
-   reddit:
-     client_id: YOUR_CLIENT_ID
-     client_secret: YOUR_CLIENT_SECRET
-     user_agent: YOUR_USER_AGENT
-   ```
-
-2. In `config_collect_recent_posts.yaml`, modify:
-   - `reddit.subreddits`: list of subreddits to monitor
-   - `reddit.time_window`: time window for "recent" posts (uses `timedelta` format, e.g., `hours: 24`)
-
-#### Output
-
 Creates a timestamped JSON file (`reddit_posts_YYYYMMDD_HHMMSS.json`) in the result directory containing:
 - Collection metadata (time, subreddits, time window)
 - List of posts with title, author, URL, text content, and score
 
+### `train_lightweight_text_classifier.py`
+
+Trains a fast TF-IDF + Naive Bayes classifier using spaCy lemmatization (default `ru_core_news_sm`).
+Run it with `python kygs/scripts/train_lightweight_text_classifier.py` and configure parameters via `config/config_train_lightweight_text_classifier.yaml` (message providers, labels, vectorizer/model settings).
+Ensure you have the spaCy model installed with `python -m spacy download ru_core_news_sm` before running the script.
+
+Generates CSVs with per-sample predictions for both train and test datasets inside `${user_settings.hydra_dir}`.
+
+### `train_text_classifier.py`
+
+Uses text embeddings with an MLP classifier for higher-capacity models. Configure via `config/config_train_text_classifier.yaml` to control embeddings, labels, and message providers.
 
 ### `annotate_posts_manually.py`
 

@@ -81,6 +81,24 @@ class MessageProvider:
         return cls(messages)
 
     @classmethod
+    def from_telegram_messages_csv(cls, csv_path: str) -> MessageProvider:
+        df = pd.read_csv(csv_path)
+
+        messages = []
+        for _, row in df.iterrows():
+            text = row["text"]
+            if not text:
+                raise ValueError("No text in message")
+
+            time = datetime.datetime.fromisoformat(row["date"])
+            author = row["sender_chat"]
+            label = row["label"]
+            msg = Message(text, time, author, label=label, true_label=None)
+            messages.append(msg)
+
+        return cls(messages)
+
+    @classmethod
     def from_reddit_posts_json(
         cls, json_path: str, stores_true_labels: bool
     ) -> MessageProvider:
