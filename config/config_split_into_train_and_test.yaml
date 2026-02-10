@@ -1,0 +1,17 @@
+defaults:
+  - _self_
+  - user_settings: user_settings
+  - hydra: base
+
+project_path: ${user_settings.project_path}
+dataset_path: ${user_settings.dataset_path}
+model_path: ${user_settings.model_path}
+result_dir: ${user_settings.hydra_dir}
+hydra_root: ${user_settings.hydra_root}
+hydra_dir: ${user_settings.hydra_dir}
+
+input_dataset_path: ${dataset_path}/synthetic_messages/medium_texting_and_news_2000/medium_texting_and_news_2000.csv
+output_train_dataset_path: ${dataset_path}/synthetic_messages/medium_texting_and_news_2000/medium_texting_and_news_1600_train.csv
+output_test_dataset_path: ${dataset_path}/synthetic_messages/medium_texting_and_news_2000/medium_texting_and_news_400_test.csv
+
+test_ratio: 0.2

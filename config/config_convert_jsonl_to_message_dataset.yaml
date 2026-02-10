@@ -1,0 +1,15 @@
+defaults:
+  - _self_
+  - user_settings: user_settings
+  - hydra: base
+
+project_path: ${user_settings.project_path}
+dataset_path: ${user_settings.dataset_path}
+model_path: ${user_settings.model_path}
+result_dir: ${user_settings.hydra_dir}
+hydra_root: ${user_settings.hydra_root}
+hydra_dir: ${user_settings.hydra_dir}
+
+input_dataset_path: ${dataset_path}/synthetic_messages/medium_news_1000/news_dataset.jsonl
+output_dataset_path: ${dataset_path}/synthetic_messages/medium_news_1000/news_dataset.csv
+label: news 
