@@ -26,6 +26,11 @@
 - Use type hints, their use is necessiated by linters
 - Update `README.md` when new functionality is added or there is outdated information
 
+### Fundamental classes
+
+- `Message` - a fundamental class primarily storing the message text, date and author. In this repo, we assume that we always manipulate messages to solve a specific text analysis problem so all the texts should be initially obtained through this class' instances
+- `MessageProvider` - a fundamental class loading and storing a collection of messages. E.g., a jsonl file storing reddit posts should eventually become a `MessageProvider` in the code
+
 ## Executable scripts 
 
 ### Text classification: `train_text_classifier.py`
