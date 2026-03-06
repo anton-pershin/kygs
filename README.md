@@ -42,6 +42,14 @@ Generates CSVs with per-sample predictions for both train and test datasets insi
 
 Uses text embeddings with an MLP classifier for higher-capacity models. Configure via `config/config_train_text_classifier.yaml` to control embeddings, labels, and message providers.
 
+### `score_relevance.py`
+
+Computes pairwise relevance scores between query and document message sets. Configure via `config/config_score_relevance.yaml` to choose message providers, embedding backend, and scoring strategy (currently cosine similarity over embeddings). Results are saved as a JSON payload containing per-query ranked document IDs with scores.
+
+### `tools/print_relevant_messages.py`
+
+Loads two message providers (for queries and documents) along with a JSON relevance file and prints human-readable summaries of the top matches. Configure via `config/config_print_relevant_messages.yaml`.
+
 ### `annotate_posts_manually.py`
 
 Allows manual annotation/labeling of previously collected Reddit posts. Displays posts one by one and prompts for label selection from predefined options.

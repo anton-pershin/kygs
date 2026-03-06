@@ -1,0 +1,22 @@
+defaults:
+  - _self_
+  - user_settings: user_settings
+  - hydra: base
+  - message_provider/synthetic_messages/short_news_10@query_message_provider
+  - message_provider/synthetic_messages/short_news_10@document_message_provider
+  - embedding: e5
+  - embedding_provider: via_model
+  - scoring_strategy: embedding_similarity
+
+project_path: ${user_settings.project_path}
+dataset_path: ${user_settings.dataset_path}
+model_path: ${user_settings.model_path}
+result_dir: ${user_settings.hydra_dir}
+hydra_root: ${user_settings.hydra_root}
+hydra_dir: ${user_settings.hydra_dir}
+
+cuda_visible_devices: [1]
+top_k:  # Optional
+
+output:
+  scores_json: relevance_scores.json

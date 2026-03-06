@@ -1,0 +1,2 @@
+_target_: kygs.relevance.embedding.EmbeddingSimilarityScoringStrategy
+embedding_provider: ${embedding_provider}

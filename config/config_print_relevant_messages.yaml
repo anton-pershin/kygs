@@ -1,0 +1,15 @@
+defaults:
+  - _self_
+  - user_settings: user_settings
+  - hydra: base
+  - message_provider/synthetic_messages/short_news_10@query_message_provider
+  - message_provider/synthetic_messages/short_news_10@document_message_provider
+
+project_path: ${user_settings.project_path}
+dataset_path: ${user_settings.dataset_path}
+model_path: ${user_settings.model_path}
+result_dir: ${user_settings.hydra_dir}
+hydra_root: ${user_settings.hydra_root}
+hydra_dir: ${user_settings.hydra_dir}
+
+scores_path: /Users/tony/reps/github/anton-pershin/kygs/hydra/2026-03-05/08-54-23/relevance_scores.json
