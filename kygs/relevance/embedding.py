@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import Sequence
+
 import numpy as np
 from numpy.linalg import norm
 
@@ -26,8 +28,8 @@ class EmbeddingSimilarityScoringStrategy(RelevanceScoringStrategy):
 
     def score(
         self,
-        queries: list[Message],
-        documents: list[Message],
+        queries: Sequence[Message],
+        documents: Sequence[Message],
     ) -> RelevanceScoreMatrix:
         if not queries or not documents:
             score_matrix = np.zeros((len(queries), len(documents)), dtype=np.float32)

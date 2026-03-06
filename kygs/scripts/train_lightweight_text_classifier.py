@@ -40,9 +40,18 @@ def print_dataset_stats(name: str, mp: MessageProvider, labels: list[str]) -> No
     console.print()
 
 
-def get_texts_and_labels(mp: MessageProvider, labels: list[str]) -> tuple[list[str], list[int]]:
+def get_texts_and_labels(
+    mp: MessageProvider, labels: list[str]
+) -> tuple[list[str], list[int]]:
     texts = [m.text for m in mp.messages]
-    y = np.array([labels.index(m.label) for m in mp.messages], dtype=np.int32)
+    label_indices: list[int] = []
+    for i, message in enumerate(mp.messages):
+        label = message.label
+        if label is None:
+            raise ValueError(f"Label is None for message #{i}")
+        label_indices.append(labels.index(label))
+
+    y = np.array(label_indices, dtype=np.int32)
     return texts, y.tolist()
 
 

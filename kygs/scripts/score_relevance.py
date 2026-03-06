@@ -2,14 +2,17 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+from typing import Any
 
 import hydra
 import hydra.utils
+import numpy as np
 from omegaconf import DictConfig
 
 from kygs.message_provider import Message, MessageProvider
 from kygs.relevance.base import RelevanceScorer
 from kygs.utils.common import get_config_path, set_cuda_visible_devices
+from kygs.utils.typing import NDArrayFloat
 
 CONFIG_NAME = "config_score_relevance"
 
@@ -17,12 +20,12 @@ CONFIG_NAME = "config_score_relevance"
 def _build_score_payload(
     queries: list[Message],
     documents: list[Message],
-    scores,
+    scores: NDArrayFloat,
     top_k: int | None,
 ) -> dict[str, Any]:
     query_ids = list(range(len(queries)))
 
-    result = {"queries": []}
+    result: dict[str, Any] = {"queries": []}
     max_k = len(documents) if top_k is None else min(top_k, len(documents))
 
     for q_idx in query_ids:
@@ -54,7 +57,7 @@ def save_scores_to_json(
     output_path: Path,
     queries: list[Message],
     documents: list[Message],
-    scores,
+    scores: NDArrayFloat,
     top_k: int | None,
 ) -> None:
     payload = _build_score_payload(queries, documents, scores, top_k)
@@ -77,7 +80,13 @@ def score_relevance(cfg: DictConfig) -> None:
     score_matrix = scorer.score(queries, documents)
 
     output_path = Path(cfg.result_dir) / cfg.output.scores_json
-    save_scores_to_json(output_path, queries, documents, score_matrix.scores, cfg.top_k)
+    save_scores_to_json(
+        output_path,
+        queries,
+        documents,
+        np.asarray(score_matrix.scores),
+        cfg.top_k,
+    )
 
 
 if __name__ == "__main__":

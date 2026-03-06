@@ -1,4 +1,5 @@
 import math
+from typing import Sequence, cast
 
 import numpy as np
 import torch
@@ -23,15 +24,22 @@ class TextEmbeddingModel:
         self.max_input_seq_length = max_input_seq_length
         self.device = device
         self.verbose = verbose
-        self.tokenizer: PreTrainedTokenizer = AutoTokenizer.from_pretrained(model)
+        tokenizer = AutoTokenizer.from_pretrained(model)
+        self.tokenizer = cast(PreTrainedTokenizer, tokenizer)
         self.model: PreTrainedModel = AutoModel.from_pretrained(
             model, device_map="auto"
         )
         self.model.eval()  # some layers behave differently in traning and eval
 
-    def predict(self, text_sequences: list[str]) -> NDArrayFloat:
+    def _get_embedding_dimension(self) -> int:
+        hidden_size = self.model.config.hidden_size
+        if hidden_size is None:
+            raise ValueError("Model config missing hidden_size")
+        return int(hidden_size)
+
+    def predict(self, text_sequences: Sequence[str]) -> NDArrayFloat:
         n_samples = len(text_sequences)
-        emb_dim = self.model.encoder.layer[-1].output.dense.out_features
+        emb_dim = self._get_embedding_dimension()
         embeddings = np.zeros((n_samples, emb_dim), np.float32)
 
         n_batch = math.ceil(n_samples / self.batch_size)
@@ -65,7 +73,7 @@ class TextEmbeddingModel:
                     max_length = self.max_input_seq_length
 
                 batch_dict = self.tokenizer(
-                    batch_text_sequences,
+                    list(batch_text_sequences),
                     max_length=max_length,
                     padding=True,
                     truncation=True,
@@ -75,8 +83,6 @@ class TextEmbeddingModel:
                 batch_dict["attention_mask"] = batch_dict["attention_mask"].to(
                     self.device
                 )
-                # outputs.last_hidden_state -> shape = [# seq, max # tokens, emb dim]
-                # outputs.pooler_output ->  shape = [# seq, emb dim]
                 outputs = self.model(**batch_dict)
 
                 # Instead of using outputs.pooler_output,

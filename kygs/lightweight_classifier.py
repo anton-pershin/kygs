@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Any, Iterable, Sequence
+from typing import TYPE_CHECKING, Sequence
 
 import joblib
 from sklearn.feature_extraction.text import TfidfVectorizer
@@ -10,6 +10,9 @@ from sklearn.metrics import classification_report
 from sklearn.naive_bayes import MultinomialNB
 
 from kygs.utils.console import console
+
+if TYPE_CHECKING:
+    import spacy.language
 
 MODEL_FILENAME = "model.pkl"
 VECTORIZER_FILENAME = "tfidf.pkl"
@@ -26,7 +29,7 @@ class SpacyLemmaTokenizer:
         strip_numeric: bool = True,
         lemmatize: bool = True,
     ) -> None:
-        import spacy
+        import spacy  # pylint: disable=import-outside-toplevel
 
         self.model_name = model_name
         self.keep_pos = tuple(keep_pos) if keep_pos else None
@@ -36,7 +39,8 @@ class SpacyLemmaTokenizer:
         self.lemmatize = lemmatize
 
         try:
-            self.nlp = spacy.load(self.model_name, disable=("ner", "textcat"))
+            nlp = spacy.load(self.model_name, disable=("ner", "textcat"))
+            self.nlp: spacy.language.Language = nlp
         except OSError as exc:
             raise RuntimeError(
                 "spaCy model 'ru_core_news_sm' is required. Install it via\n"
@@ -70,7 +74,6 @@ class SpacyLemmaTokenizer:
         return tokens
 
 
-
 class LightweightTextClassifier:
     def __init__(
         self,
@@ -86,7 +89,6 @@ class LightweightTextClassifier:
 
     def fit(self, texts: Sequence[str], targets: Sequence[int]) -> None:
         x_train = self.vectorizer.fit_transform(texts)
-        breakpoint()
         self.classifier.fit(x_train, targets)
 
     def predict(self, texts: Sequence[str]) -> list[int]:
@@ -102,7 +104,9 @@ class LightweightTextClassifier:
         predictions = self.predict(texts)
         console.print()
         console.print(f"[bold]{title.upper()} CLASSIFICATION REPORT[/bold]")
-        console.print(classification_report(targets, predictions, target_names=self.labels))
+        console.print(
+            classification_report(targets, predictions, target_names=self.labels)
+        )
 
     def save(self) -> None:
         self.model_path.mkdir(parents=True, exist_ok=False)

@@ -38,7 +38,8 @@ class ClusterCollection(ABC):
 
 
 class EmbeddingProvider(Protocol):
-    def __call__(self, objs: list[Any]) -> NDArrayFloat: ...
+    def __call__(self, objs: list[Any]) -> NDArrayFloat:
+        ...
 
 
 class EmbeddingProviderViaModel:

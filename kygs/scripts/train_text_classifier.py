@@ -63,9 +63,9 @@ def prepare_xy(
     text_sequences = get_text_sequences(mp)
     text_embeddings = text_embedding_model.predict(text_sequences)
     numeric_labels = np.array(
-        [labels.index(m.label) for m in mp.messages],  # type: ignore
+        [labels.index(m.label or labels[0]) for m in mp.messages],
         dtype=np.int32,
-    )  # TODO: slow and clumsy wrt. type hints
+    )
 
     return text_embeddings, numeric_labels
 
