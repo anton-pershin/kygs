@@ -19,10 +19,10 @@
 - This code has multiple entry points all of which are called "executable scripts" and are located in `kygs/scripts`. Depending on the task, one or another executable script has to be invoked.
 - This code is configured using hydra. Its configs can be found in `config/`. No matter what constants/literals are used, they should be taken from configs. Object construction can also be made via `hydra.utils.instantiate` but use it only with simple classes (i.e., not derived from some base class).
 - Run the following linters before finishing the job:
-  - black to ensure good formatting (note that it changes the code): `black slam_eval/`
-  - isort to ensure good import sorting (note that it changes the code): `isort slam_eval/`
-  - pylint to ensure typing: `pylint slam_eval/`
-  - mypy to ensure typing: `mypy slam_eval/`
+  - black to ensure good formatting (note that it changes the code): `black kygs/`
+  - isort to ensure good import sorting (note that it changes the code): `isort kygs/`
+  - pylint to ensure typing: `pylint kygs/`
+  - mypy to ensure typing: `mypy kygs/`
 - Use type hints, their use is necessiated by linters
 - Update `README.md` when new functionality is added or there is outdated information
 
