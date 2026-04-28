@@ -4,8 +4,12 @@ from typing import Any, Optional, Protocol
 import numpy as np
 from scipy.spatial.distance import cosine
 
-from kygs.clustering.base import (ClusterCollection, EmbeddingProvider, HasText,
-                                  TextClusteringViaEmbeddings)
+from kygs.clustering.base import (
+    ClusterCollection,
+    EmbeddingProvider,
+    HasText,
+    TextClusteringViaEmbeddings,
+)
 from kygs.text_embedding import TextEmbeddingModel
 from kygs.utils.typing import NDArrayFloat, NDArrayInt
 

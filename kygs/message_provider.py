@@ -10,6 +10,7 @@ import pandas as pd
 from rich.markdown import Markdown
 from rich.panel import Panel
 
+from kygs.metadata import Metadata, TimeMetadata
 from kygs.utils.console import console
 from kygs.utils.time import datetime_ceil, datetime_floor, increment_datetime
 from kygs.utils.typing import TimeUnit
@@ -31,8 +32,7 @@ class Message:
 @dataclass
 class MessageCollection:
     messages: list[Message]
-    start_dt: datetime.datetime
-    end_dt: datetime.datetime
+    metadata: Metadata
 
 
 class MessageProvider:
@@ -203,8 +203,7 @@ class MessageProvider:
             splits.append(
                 MessageCollection(
                     messages=split,
-                    start_dt=split_start_dt,
-                    end_dt=split_end_dt,
+                    metadata=TimeMetadata(start_dt=split_start_dt, end_dt=split_end_dt),
                 )
             )
 

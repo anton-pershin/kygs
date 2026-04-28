@@ -8,8 +8,13 @@ from scipy.spatial.distance import cosine
 from sklearn.cluster import AgglomerativeClustering
 from sklearn.metrics import adjusted_rand_score, normalized_mutual_info_score
 
-from kygs.clustering.base import (ClusterCollection, EmbeddingProvider, HasText,
-                                  TextClustering, TextClusteringViaEmbeddings)
+from kygs.clustering.base import (
+    ClusterCollection,
+    EmbeddingProvider,
+    HasText,
+    TextClustering,
+    TextClusteringViaEmbeddings,
+)
 from kygs.utils.console import console
 from kygs.utils.report import CsvReport
 from kygs.utils.typing import NDArrayFloat, NDArrayInt

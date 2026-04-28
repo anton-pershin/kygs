@@ -3,16 +3,17 @@ defaults:
   - user_settings: user_settings
   - hydra: base
   - llm: local
-  - message_provider: reddit_posts_json
+  - message_provider: reddit_posts_medium_unlabelled_dataset_100
+  - split_strategy: time_split
 
 project_path: ${user_settings.project_path}
+dataset_path: ${user_settings.dataset_path}
 result_dir: ${user_settings.result_dir}
 hydra_root: ${user_settings.hydra_root}
 hydra_dir: ${user_settings.hydra_dir}
 
 system_prompt: "You are a helpful assistant whose role is to summarize information from posts. Follow the instructions as closely as possible."
 original_post_summarization:
-  time_interval: minute 
   user_prompt_template: |
     ### Instruction ###
     Below are the text posts collected within a certain time interval and stored in JSON. Write a one-sentence summary based on them. 
@@ -20,8 +21,11 @@ original_post_summarization:
     ### Posts ###
     {messages_as_json}
 
-  output:
-    summaries_path: summarized_messages_per_interval.csv
+  summary_handlers:
+    - _target_: kygs.summary_handler.SummaryCsvSaver
+      output_path: summarized_messages_per_interval.csv
+    - _target_: kygs.summary_handler.SummaryJsonSaver
+      output_path: summarized_messages_per_interval.json
 
 recursive_summarization:
   user_prompt_template: |
@@ -32,5 +36,8 @@ recursive_summarization:
     {summaries_as_json}
 
   max_characters_in_prompt: 4096
-  output:
-    summary_path: summarized_messages_overall.csv
+  summary_handlers:
+    - _target_: kygs.summary_handler.SummaryCsvSaver
+      output_path: summarized_messages_overall.csv
+    - _target_: kygs.summary_handler.SummaryJsonSaver
+      output_path: summarized_messages_overall.json

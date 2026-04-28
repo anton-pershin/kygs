@@ -1,33 +1,28 @@
 import hydra
 from omegaconf import DictConfig
 
+from kygs.split_strategy import SplitStrategy
 from kygs.summarization import Summary, summarize_posts, summarize_summaries
 from kygs.utils.common import get_config_path
-from kygs.utils.report import CsvReport
 
 CONFIG_NAME = "config_summarize_posts"
 
 
-def _dump_summaries(summary_collection: list[Summary], summaries_path: str) -> None:
-    summarized_messages_report = CsvReport(summaries_path)
-    summarized_messages_report.add_columns(
-        summarized_messages=[s.text for s in summary_collection],
-        start_time=[
-            s.start_dt.strftime("%Y-%m-%d %H:%M:%S") for s in summary_collection
-        ],
-        end_time=[s.end_dt.strftime("%Y-%m-%d %H:%M:%S") for s in summary_collection],
-    )
-    summarized_messages_report.dump()
+def _dump_summaries(summary_collection: list[Summary], cfg: DictConfig) -> None:
+    for handler_cfg in cfg.summary_handlers:
+        handler = hydra.utils.instantiate(handler_cfg)
+        handler.handle(summary_collection)
 
 
 def run_summarize_posts(cfg: DictConfig) -> None:
     mp = hydra.utils.call(cfg.message_provider)
     llm = hydra.utils.instantiate(cfg.llm)
+    split_strategy: SplitStrategy = hydra.utils.instantiate(cfg.split_strategy)
 
-    # Summarize within the specified time interval
+    message_splits = split_strategy.split(mp.messages)
+
     summary_collection: list[Summary] = summarize_posts(
-        mp=mp,
-        summarization_time_interval=cfg.original_post_summarization.time_interval,
+        message_splits=message_splits,
         llm=llm,
         system_prompt=cfg.system_prompt,
         user_prompt_template=cfg.original_post_summarization.user_prompt_template,
@@ -36,10 +31,9 @@ def run_summarize_posts(cfg: DictConfig) -> None:
 
     _dump_summaries(
         summary_collection=summary_collection,
-        summaries_path=cfg.original_post_summarization.output.summaries_path,
+        cfg=cfg.original_post_summarization,
     )
 
-    # Prepare overall summary by recursive summarization
     max_chars_in_prompt = cfg.recursive_summarization.max_characters_in_prompt
     while len(summary_collection) > 1:
         summary_collection = summarize_summaries(
@@ -53,7 +47,7 @@ def run_summarize_posts(cfg: DictConfig) -> None:
 
     _dump_summaries(
         summary_collection=summary_collection,
-        summaries_path=cfg.recursive_summarization.output.summary_path,
+        cfg=cfg.recursive_summarization,
     )
 
 
