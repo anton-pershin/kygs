@@ -107,9 +107,9 @@ class TestSummaryHandler:
 
             assert len(data) == 2
             assert data[0]["summary"] == "Summary about cats."
-            assert data[0]["start_time"] == ""
-            assert data[0]["end_time"] == ""
+            assert data[0]["topic"] == "cats"
             assert data[1]["summary"] == "Summary about dogs."
+            assert data[1]["topic"] == "dogs"
 
     def test_json_saver_output_is_serializable(self) -> None:
         summaries = [
