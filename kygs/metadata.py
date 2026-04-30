@@ -41,7 +41,7 @@ class TimeMetadata(Metadata):
 class LabelMetadata(Metadata):
     def __init__(self, labels: list[str]) -> None:
         super().__init__(labels=labels)
-        self.labels = labels 
+        self.labels = labels
 
     def merge(self, other: Metadata) -> Metadata:
         if isinstance(other, LabelMetadata):

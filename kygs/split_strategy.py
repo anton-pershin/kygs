@@ -1,12 +1,10 @@
 from __future__ import annotations
 
-import datetime
 from abc import ABC, abstractmethod
-from typing import Any
 from collections import defaultdict
 
 from kygs.message_provider import Message, MessageCollection
-from kygs.metadata import Metadata, TimeMetadata, LabelMetadata
+from kygs.metadata import LabelMetadata, Metadata, TimeMetadata
 from kygs.utils.time import datetime_ceil, datetime_floor, increment_datetime
 from kygs.utils.typing import TimeUnit
 
@@ -25,7 +23,6 @@ class TimeSplitStrategy(SplitStrategy):
         if not messages:
             return []
 
-        
         times = [m.time for m in messages]
         times.sort()
         start_dt = datetime_floor(times[0], self.time_unit)
@@ -60,16 +57,19 @@ class LabelSplitStrategy(SplitStrategy):
     def split(self, messages: list[Message]) -> list[MessageCollection]:
         if not messages:
             return []
-        
+
         cluster_label_to_messages = defaultdict(list)
         for m in messages:
             cluster_label_to_messages[m.label].append(m)
-       
+
         splits = []
-        for cluster_label, messages in cluster_label_to_messages.items():
+        for cluster_label, cluster_messages in cluster_label_to_messages.items():
+            if cluster_label is None:
+                raise ValueError("Label split strategy implies message labels are not None")
+
             splits.append(
                 MessageCollection(
-                    messages=messages,
+                    messages=cluster_messages,
                     metadata=LabelMetadata(labels=[cluster_label]),
                 )
             )
