@@ -158,7 +158,6 @@ class TestSummarizePosts:
         json_part = user_prompts[0].replace("Posts: ", "")
         parsed = ast.literal_eval(json_part)
         assert len(parsed) == 2
-        assert parsed[0]["author"] == "test_author"
         assert parsed[0]["message"] == "post about cats"
 
     @patch("kygs.summarization.THINKING_REMOVERS", MOCK_THINKING_REMOVERS)

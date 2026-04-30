@@ -28,15 +28,14 @@ def summarize_posts(
         if len(message_collection.messages) == 0:
             continue
 
-        messages_for_time_interval = [
+        messages_for_split = [
             {
-                "author": m.author,
                 "time": m.time.strftime("%Y-%m-%d %H:%M:%S"),
                 "message": m.text,
             }
             for m in message_collection.messages
         ]
-        messages_as_json = json.dumps(messages_for_time_interval)
+        messages_as_json = json.dumps(messages_for_split)
         messages_as_json = json.JSONDecoder().decode(messages_as_json)
         user_prompt = user_prompt_template.format(
             messages_as_json=messages_as_json,

@@ -3,8 +3,8 @@ defaults:
   - user_settings: user_settings
   - hydra: base
   - llm: local
-  - message_provider: reddit_posts_medium_unlabelled_dataset_100
-  - split_strategy: time_split
+  - message_provider: synthetic_messages/small_texting_and_news_200/clustering_results
+  - split_strategy: label_split  # time_split, label_split
 
 project_path: ${user_settings.project_path}
 dataset_path: ${user_settings.dataset_path}
@@ -23,9 +23,9 @@ original_post_summarization:
 
   summary_handlers:
     - _target_: kygs.summary_handler.SummaryCsvSaver
-      output_path: summarized_messages_per_interval.csv
+      output_path: summarized_messages_per_split.csv
     - _target_: kygs.summary_handler.SummaryJsonSaver
-      output_path: summarized_messages_per_interval.json
+      output_path: summarized_messages_per_split.json
 
 recursive_summarization:
   user_prompt_template: |

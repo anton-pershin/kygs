@@ -30,8 +30,8 @@ class SummaryJsonSaver(SummaryHandler):
                 record["start_time"] = s.metadata.start_dt.strftime("%Y-%m-%d %H:%M:%S")
                 record["end_time"] = s.metadata.end_dt.strftime("%Y-%m-%d %H:%M:%S")
             else:
-                record["start_time"] = ""
-                record["end_time"] = ""
+                for k, v in s.metadata.items():
+                    record[k] = v
             records.append(record)
 
         with open(self.output_path, "w", encoding="utf-8") as f:
