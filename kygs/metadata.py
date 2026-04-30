@@ -36,3 +36,16 @@ class TimeMetadata(Metadata):
             "start_dt": self.start_dt.strftime("%Y-%m-%d %H:%M:%S"),
             "end_dt": self.end_dt.strftime("%Y-%m-%d %H:%M:%S"),
         }
+
+
+class LabelMetadata(Metadata):
+    def __init__(self, labels: list[str]) -> None:
+        super().__init__(labels=labels)
+        self.labels = labels 
+
+    def merge(self, other: Metadata) -> Metadata:
+        if isinstance(other, LabelMetadata):
+            return LabelMetadata(
+                labels=self.labels + other.labels,
+            )
+        return super().merge(other)

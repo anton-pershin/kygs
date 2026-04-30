@@ -3,26 +3,12 @@ from __future__ import annotations
 import datetime
 from abc import ABC, abstractmethod
 from typing import Any
+from collections import defaultdict
 
 from kygs.message_provider import Message, MessageCollection
-from kygs.metadata import Metadata
+from kygs.metadata import Metadata, TimeMetadata, LabelMetadata
 from kygs.utils.time import datetime_ceil, datetime_floor, increment_datetime
 from kygs.utils.typing import TimeUnit
-
-
-class TimeMetadata(Metadata):
-    def __init__(self, start_dt: datetime.datetime, end_dt: datetime.datetime) -> None:
-        super().__init__(start_dt=start_dt, end_dt=end_dt)
-        self.start_dt = start_dt
-        self.end_dt = end_dt
-
-    def merge(self, other: Metadata) -> Metadata:
-        if isinstance(other, TimeMetadata):
-            return TimeMetadata(
-                start_dt=min(self.start_dt, other.start_dt),
-                end_dt=max(self.end_dt, other.end_dt),
-            )
-        return super().merge(other)
 
 
 class SplitStrategy(ABC):
@@ -39,6 +25,7 @@ class TimeSplitStrategy(SplitStrategy):
         if not messages:
             return []
 
+        
         times = [m.time for m in messages]
         times.sort()
         start_dt = datetime_floor(times[0], self.time_unit)
@@ -65,6 +52,27 @@ class TimeSplitStrategy(SplitStrategy):
             i += 1
             split_start_dt = increment_datetime(start_dt, self.time_unit, amount=i)
             split_end_dt = increment_datetime(start_dt, self.time_unit, amount=i + 1)
+
+        return splits
+
+
+class LabelSplitStrategy(SplitStrategy):
+    def split(self, messages: list[Message]) -> list[MessageCollection]:
+        if not messages:
+            return []
+        
+        cluster_label_to_messages = defaultdict(list)
+        for m in messages:
+            cluster_label_to_messages[m.label].append(m)
+       
+        splits = []
+        for cluster_label, messages in cluster_label_to_messages.items():
+            splits.append(
+                MessageCollection(
+                    messages=messages,
+                    metadata=LabelMetadata(labels=[cluster_label]),
+                )
+            )
 
         return splits
 
