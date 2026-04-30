@@ -4,7 +4,7 @@ import datetime
 import json
 from dataclasses import dataclass
 from functools import reduce
-from typing import Optional
+from typing import Optional, Literal
 
 import pandas as pd
 from rich.markdown import Markdown
@@ -34,6 +34,11 @@ class MessageCollection:
     messages: list[Message]
     metadata: Metadata
 
+
+ClusteringResultReadMode = Literal[
+    "flat",  # read all the messages flattening them across the clusters
+    "first_message",  # read only the first messages from each cluster
+]
 
 class MessageProvider:
     def __init__(self, messages: list[Message]) -> None:
@@ -148,6 +153,27 @@ class MessageProvider:
                 msg = Message(text, time, author, label=label, true_label=None)
 
             messages.append(msg)
+
+        return cls(messages)
+
+    @classmethod
+    def from_clustering_results_json(cls, json_path: str, mode: ClusteringResultReadMode) -> MessageProvider:
+        with open(json_path, "r") as f:
+            clustering_results = json.load(f)
+
+        messages = []
+        for cluster_data in clustering_results["clusters"]:
+            for cluster_message in cluster_data["messages"]:
+                message_kwargs = {
+                    "text": cluster_message["text"],
+                    "time": datetime.datetime.now(),
+                    "author": "clustering_algorithm",
+                    "label": str(cluster_data["cluster_label"]),
+                    "true_label": None,
+                }
+                messages.append(Message(**message_kwargs))
+                if mode == "first_message":
+                    break
 
         return cls(messages)
 
