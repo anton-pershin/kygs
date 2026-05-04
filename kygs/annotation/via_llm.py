@@ -5,6 +5,7 @@ from kygs.message_provider import Message
 
 from rally.interaction import request_based_on_prompts  # type: ignore # pylint: disable=import-error # isort: skip
 from rally.llm import Llm  # type: ignore # pylint: disable=import-error # isort: skip
+from rally.thinking import THINKING_REMOVERS
 
 
 LlmResponseParser = Callable[[str, dict[str, str]], Optional[str]]
@@ -55,6 +56,9 @@ class AnnotationViaLlm(MessageAnnotation):
             model=self.llm.model,
             progress_title="Annotating messages" if self.verbose else None,
         )
+
+        # Remove thinking part
+        responses = [THINKING_REMOVERS[self.llm.model_family](r) for r in responses]
 
         # Parse responses into labels using the provided parser
         annotations = [self.response_parser(response, labels) for response in responses]
