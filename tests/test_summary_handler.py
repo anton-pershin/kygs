@@ -4,7 +4,7 @@ import os
 import tempfile
 
 from kygs.split_strategy import Metadata, TimeMetadata
-from kygs.summarization import Summary
+from kygs.summarization.base import Summary
 from kygs.summary_handler import SummaryCsvSaver, SummaryJsonSaver
 
 

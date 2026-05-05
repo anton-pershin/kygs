@@ -3,7 +3,7 @@ from abc import ABC, abstractmethod
 from typing import Any
 
 from kygs.split_strategy import TimeMetadata
-from kygs.summarization import Summary
+from kygs.summarization.base import Summary
 from kygs.utils.report import CsvReport
 
 

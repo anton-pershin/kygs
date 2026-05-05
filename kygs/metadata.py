@@ -49,3 +49,10 @@ class LabelMetadata(Metadata):
                 labels=self.labels + other.labels,
             )
         return super().merge(other)
+
+
+def merge_metadatas(metadatas: list[Metadata]) -> Metadata:
+    merged = metadatas[0]
+    for m in metadatas[1:]:
+        merged = merged.merge(m)
+    return merged

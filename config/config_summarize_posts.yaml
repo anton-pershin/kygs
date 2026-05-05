@@ -5,6 +5,10 @@ defaults:
   - llm: local
   - message_provider: synthetic_messages/small_texting_and_news_200/clustering_results
   - split_strategy: label_split  # time_split, label_split
+  - summarization_prompt/original_message@original_message_summarization_prompt
+  - summarization_prompt/partial_summary@partial_summary_summarization_prompt
+  - summary_builder/plain@original_message_summary_builder
+  - summary_builder/plain@partial_summary_builder
 
 project_path: ${user_settings.project_path}
 dataset_path: ${user_settings.dataset_path}
@@ -12,32 +16,11 @@ result_dir: ${user_settings.result_dir}
 hydra_root: ${user_settings.hydra_root}
 hydra_dir: ${user_settings.hydra_dir}
 
-system_prompt: "You are a helpful assistant whose role is to summarize information from posts. Follow the instructions as closely as possible."
-original_post_summarization:
-  user_prompt_template: |
-    ### Instruction ###
-    Below are the text posts collected within a certain time interval and stored in JSON. Write a one-sentence summary based on them. 
-
-    ### Posts ###
-    {messages_as_json}
-
-  summary_handlers:
-    - _target_: kygs.summary_handler.SummaryCsvSaver
-      output_path: summarized_messages_per_split.csv
-    - _target_: kygs.summary_handler.SummaryJsonSaver
-      output_path: summarized_messages_per_split.json
-
-recursive_summarization:
-  user_prompt_template: |
-    ### Instruction ###
-    Below are summaries of the text posts collected on a social platform and stored in JSON. Write a summary based on them using up to three sentences. 
-
-    ### Posts ###
-    {summaries_as_json}
-
-  max_characters_in_prompt: 4096
-  summary_handlers:
-    - _target_: kygs.summary_handler.SummaryCsvSaver
-      output_path: summarized_messages_overall.csv
-    - _target_: kygs.summary_handler.SummaryJsonSaver
-      output_path: summarized_messages_overall.json
+max_characters_in_prompt: 4096
+verbose: false
+summary_per_split_handlers:
+  - _target_: kygs.summary_handler.SummaryJsonSaver
+    output_path: summarized_messages_per_split.json
+overall_summary_handlers:
+  - _target_: kygs.summary_handler.SummaryJsonSaver
+    output_path: summarized_messages_overall.json

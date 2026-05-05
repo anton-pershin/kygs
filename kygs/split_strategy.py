@@ -65,7 +65,9 @@ class LabelSplitStrategy(SplitStrategy):
         splits = []
         for cluster_label, cluster_messages in cluster_label_to_messages.items():
             if cluster_label is None:
-                raise ValueError("Label split strategy implies message labels are not None")
+                raise ValueError(
+                    "Label split strategy implies message labels are not None"
+                )
 
             splits.append(
                 MessageCollection(
