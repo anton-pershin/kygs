@@ -1,5 +1,6 @@
 # kygs
-LLM-powered opinion grabber
+
+LLM-powered tools for natural text processing including text classification, clustering, annotation, summarization and similarity/relevance analysis.
 
 ## Getting started
 
@@ -19,6 +20,13 @@ python kygs/scripts/XXX.py
 ```
 
 ⚠️  DO NOT commit your `user_settings.yaml`
+
+## Subpackages
+
+- [Summarization](docs/summarization.md): `kygs.summarization`
+- Annotation: `kygs.annotation`
+- Clustering: `kygs.clustering`
+- Relevance analysis: `kygs.relevance`
 
 ## Scripts
 
@@ -49,6 +57,16 @@ Computes pairwise relevance scores between query and document message sets. Conf
 ### `tools/print_relevant_messages.py`
 
 Loads two message providers (for queries and documents) along with a JSON relevance file and prints human-readable summaries of the top matches. Configure via `config/config_print_relevant_messages.yaml`.
+
+### `summarize_posts.py`
+
+Summarizes collections of messages using recursive (map-reduce) LLM summarization. Messages are first split into groups via a configurable `SplitStrategy`, then each group is summarized independently. Finally, all per-split summaries are combined into an overall summary. Configure via `config/config_summarize_posts.yaml` to control the LLM, message provider, split strategy, summarization prompts, summary builders, and prompt size limit (`max_characters_in_prompt`).
+
+#### Output
+
+Two JSON files in the Hydra output directory:
+- `summarized_messages_per_split.json` — one summary per message split (e.g., per time period or label)
+- `summarized_messages_overall.json` — a single summary synthesizing all per-split summaries
 
 ### `annotate_posts_manually.py`
 
