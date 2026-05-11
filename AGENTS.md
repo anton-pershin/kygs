@@ -13,6 +13,15 @@
 
 ## Developer guide
 
+### Agent workflow
+
+1. Create a local git branch named `YYYYMMDD_short_task_description` where `YYYYMMDD` stands for the current date. Checkout this local branch and make sure all the future changes will be done there. Do not forget to make occasional commits during your work to be able to roll back to previous versions of the code if necessary. NEVER commit `config/user_settings/user_settings.yaml`, keep its changes unstaged.
+2. Plan the changes you want to do to solve the user problem and create `TODO_short_task_description.md` with three sections:
+  - User request (explain the user request how you understood it)
+  - Solution description (explain your what your solution would look like)
+  - Tasks (a todo list you will need to update while you are working through the solution)
+3. Execute the planned tasks updating `TODO_short_task_description.md` as necessary.
+
 ### Basics
 
 - All the code structure is documented well in `README.md` and `docs/`. Read the documentations carefully before making any changes.

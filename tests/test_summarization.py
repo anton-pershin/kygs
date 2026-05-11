@@ -12,6 +12,8 @@ from kygs.message_provider import Message, MessageCollection
 from kygs.metadata import Metadata, TimeMetadata, merge_metadatas
 from kygs.summarization.base import Summary, to_message_collection
 from kygs.summarization.direct import (
+    AnnotatedSummarizationPrompt,
+    AnnotatedSummaryBuilder,
     DirectSummarization,
     OnlyMessageSummarizationPrompt,
     PlainSummaryBuilder,
@@ -574,3 +576,80 @@ class TestPartitionCollection:
         result = _partition_collection(mc, max_chars_in_prompt=5)
         assert len(result) == 1
         assert [m.text for m in result[0].messages] == ["", "aaa", ""]
+
+
+class TestAnnotatedSummarizationPrompt:
+    def test_prompt_includes_labels(self):
+        message = _make_message(
+            "Cats are great.", datetime.datetime(2025, 1, 15, 10, 0, 0)
+        )
+        mc = MessageCollection(
+            messages=[message],
+            metadata=Metadata(topic="animals"),
+        )
+        labels = {"positive": "Positive sentiment", "negative": "Negative sentiment"}
+        prompt = AnnotatedSummarizationPrompt(
+            system_prompt="sys",
+            user_prompt_template="Labels:\n{labels}\n\nPosts: {messages_as_json}",
+            labels=labels,
+        )
+        result = prompt(mc)
+        assert "positive" in result
+        assert "Positive sentiment" in result
+        assert "negative" in result
+        assert "Cats are great." in result
+
+    def test_prompt_serializes_messages_without_time(self):
+        message = _make_message("Hello world", datetime.datetime(2025, 1, 15, 10, 0, 0))
+        mc = MessageCollection(
+            messages=[message],
+            metadata=Metadata(),
+        )
+        labels = {"a": "Label A"}
+        prompt = AnnotatedSummarizationPrompt(
+            system_prompt="sys",
+            user_prompt_template="{messages_as_json}",
+            labels=labels,
+        )
+        result = prompt(mc)
+        parsed = json.loads(result)
+        assert len(parsed) == 1
+        assert "message" in parsed[0]
+        assert "time" not in parsed[0]
+        assert parsed[0]["message"] == "Hello world"
+
+
+class TestAnnotatedSummaryBuilder:
+    def test_parses_json_with_single_label(self):
+        metadata = Metadata(topic="test")
+        builder = AnnotatedSummaryBuilder()
+        response = json.dumps({"summary": "A summary text", "labels": ["positive"]})
+        result = builder(text=response, metadata=metadata)
+        assert result.text == "A summary text"
+        assert result.metadata["labels"] == ["positive"]
+        assert result.metadata["topic"] == "test"
+
+    def test_parses_json_with_multiple_labels(self):
+        metadata = Metadata()
+        builder = AnnotatedSummaryBuilder()
+        response = json.dumps(
+            {"summary": "Another summary", "labels": ["positive", "technology"]}
+        )
+        result = builder(text=response, metadata=Metadata())
+        assert result.text == "Another summary"
+        assert result.metadata["labels"] == ["positive", "technology"]
+
+    def test_parses_json_with_empty_labels(self):
+        builder = AnnotatedSummaryBuilder()
+        response = json.dumps({"summary": "No labels apply", "labels": []})
+        result = builder(text=response, metadata=Metadata())
+        assert result.text == "No labels apply"
+        assert result.metadata["labels"] == []
+
+    def test_preserves_existing_metadata(self):
+        builder = AnnotatedSummaryBuilder()
+        response = json.dumps({"summary": "Summary", "labels": ["a"]})
+        result = builder(text=response, metadata=Metadata(topic="cats", count=3))
+        assert result.metadata["topic"] == "cats"
+        assert result.metadata["count"] == 3
+        assert result.metadata["labels"] == ["a"]

@@ -9,7 +9,6 @@ from kygs.relevance.base import (
     RelevanceScoringStrategy,
 )
 from kygs.relevance.embedding import EmbeddingSimilarityScoringStrategy
-
 from tests.test_cluster_posts import (
     MockEmbedding,
     create_message_dict_provider,
@@ -58,7 +57,9 @@ def embedding_provider():
         lambda _: TextEqualityScoringStrategy(),
     ],
 )
-def test_queries_rank_themselves_highest(message_provider, strategy_factory, embedding_provider):
+def test_queries_rank_themselves_highest(
+    message_provider, strategy_factory, embedding_provider
+):
     queries = message_provider.messages
     documents = message_provider.messages
     strategy = strategy_factory(embedding_provider)

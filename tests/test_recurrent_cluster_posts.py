@@ -1,7 +1,19 @@
-from omegaconf import OmegaConf, DictConfig
+from omegaconf import DictConfig, OmegaConf
 
 from kygs.scripts.recurrently_cluster_posts import recurrently_cluster_posts
-from tests.test_cluster_posts import cfg, embedding_cfg, embedding_provider_via_model_cfg, embedding_provider_via_object_attribute_cfg, message_provider_cfg, message_handlers_cfg, hac_clustering_with_embedding_model_cfg, hac_clustering_with_embedding_attribute_cfg, centroid_based_clustering_with_embedding_model_cfg, centroid_based_clustering_with_embedding_attribute_cfg, run_and_check_clustering_based_on_cfg
+from tests.test_cluster_posts import (
+    centroid_based_clustering_with_embedding_attribute_cfg,
+    centroid_based_clustering_with_embedding_model_cfg,
+    cfg,
+    embedding_cfg,
+    embedding_provider_via_model_cfg,
+    embedding_provider_via_object_attribute_cfg,
+    hac_clustering_with_embedding_attribute_cfg,
+    hac_clustering_with_embedding_model_cfg,
+    message_handlers_cfg,
+    message_provider_cfg,
+    run_and_check_clustering_based_on_cfg,
+)
 
 
 class TestRecurrentClusterPosts:
@@ -13,7 +25,7 @@ class TestRecurrentClusterPosts:
         message_provider_cfg,
         message_handlers_cfg,
         hac_clustering_with_embedding_model_cfg,
-        monkeypatch
+        monkeypatch,
     ):
         # Add mocks
         cfg.embedding = embedding_cfg
@@ -34,7 +46,7 @@ class TestRecurrentClusterPosts:
         message_provider_cfg,
         message_handlers_cfg,
         hac_clustering_with_embedding_attribute_cfg,
-        monkeypatch
+        monkeypatch,
     ):
         # Add mocks
         cfg.embedding = embedding_cfg
@@ -55,7 +67,7 @@ class TestRecurrentClusterPosts:
         message_provider_cfg,
         message_handlers_cfg,
         centroid_based_clustering_with_embedding_model_cfg,
-        monkeypatch
+        monkeypatch,
     ):
         # Add mocks
         cfg.embedding = embedding_cfg
@@ -76,7 +88,7 @@ class TestRecurrentClusterPosts:
         message_provider_cfg,
         message_handlers_cfg,
         centroid_based_clustering_with_embedding_attribute_cfg,
-        monkeypatch
+        monkeypatch,
     ):
         # Add mocks
         cfg.embedding = embedding_cfg
@@ -88,4 +100,3 @@ class TestRecurrentClusterPosts:
 
         # Run and check
         run_and_check_clustering_based_on_cfg(recurrently_cluster_posts, cfg)
-

@@ -7,7 +7,6 @@ from kygs.split_strategy import Metadata, TimeMetadata
 from kygs.summarization.base import Summary
 from kygs.summary_handler import SummaryCsvSaver, SummaryJsonSaver
 
-
 START_DT = datetime.datetime(2025, 1, 15, 10, 0, 0)
 END_DT = datetime.datetime(2025, 1, 15, 11, 0, 0)
 

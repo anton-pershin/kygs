@@ -49,6 +49,36 @@ class BaseSummarizationPrompt(ABC):
         """
 
 
+class AnnotatedSummarizationPrompt(BaseSummarizationPrompt):
+    def __init__(
+        self,
+        system_prompt: str,
+        user_prompt_template: str,
+        labels: dict[str, str],
+    ) -> None:
+        super().__init__(system_prompt, user_prompt_template)
+        self.labels = labels
+
+    def __call__(self, message_collection: MessageCollection) -> str:
+        messages_for_split = [
+            self.turn_message_to_dict(m) for m in message_collection.messages
+        ]
+        messages_as_json = json.dumps(messages_for_split, ensure_ascii=False)
+        labels_formatted = "\n".join(
+            [f"- **{name}**. {descr}" for name, descr in self.labels.items()]
+        )
+        user_prompt = self.user_prompt_template.format(
+            messages_as_json=messages_as_json,
+            labels=labels_formatted,
+        )
+        return user_prompt
+
+    def turn_message_to_dict(self, message: Message) -> dict[str, str]:
+        return {
+            "message": message.text,
+        }
+
+
 class OnlyMessageSummarizationPrompt(BaseSummarizationPrompt):
     def turn_message_to_dict(self, message: Message) -> dict[str, str]:
         return {
@@ -77,6 +107,13 @@ class BaseSummaryBuilder(ABC):
         Returns:
             Summary with parsed summary text and filled metadata
         """
+
+
+class AnnotatedSummaryBuilder(BaseSummaryBuilder):
+    def __call__(self, text: str, metadata: Metadata) -> Summary:
+        parsed = json.loads(text)
+        enriched_metadata = Metadata({**metadata, "labels": parsed["labels"]})
+        return Summary(text=parsed["summary"], metadata=enriched_metadata)
 
 
 class PlainSummaryBuilder(BaseSummaryBuilder):

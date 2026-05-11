@@ -1,0 +1,15 @@
+_target_: kygs.summarization.direct.AnnotatedSummarizationPrompt
+system_prompt: "You are a helpful assistant whose role is to summarize information from posts and classify the collection. Follow the instructions as closely as possible."
+user_prompt_template: |
+  ### Instruction ###
+  Below are text posts stored in JSON. Write a one-sentence summary based on them AND assign all applicable labels to the entire collection.
+
+  Available classes:
+  {labels}
+
+  Respond ONLY in this JSON format:
+  {{"summary": "...", "labels": ["label1", "label2", ...]}}
+
+  ### Posts ###
+  {messages_as_json}
+labels: ${labels}

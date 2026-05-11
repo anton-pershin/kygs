@@ -68,6 +68,16 @@ Two JSON files in the Hydra output directory:
 - `summarized_messages_per_split.json` — one summary per message split (e.g., per time period or label)
 - `summarized_messages_overall.json` — a single summary synthesizing all per-split summaries
 
+### `summarize_and_annotate_posts.py`
+
+Summarizes collections of messages and assigns multilabel annotations to each collection in a single LLM pass. Uses the same recursive map-reduce architecture as `summarize_posts.py`, but the first-pass prompt instructs the LLM to return a JSON response containing both a summary and a list of labels from configurable annotation classes. Subsequent recursive passes use plain summarization without annotation. Configure via `config/config_summarize_and_annotate_posts.yaml` to control the LLM, message provider, split strategy, annotation labels, summarization prompts, summary builders, and prompt size limit.
+
+#### Output
+
+Two JSON files in the Hydra output directory:
+- `summarized_and_annotated_messages_per_split.json` — one summary per message split, each with a `labels` field in metadata containing the assigned multilabel annotations
+- `summarized_and_annotated_messages_overall.json` — a single overall summary
+
 ### `annotate_posts_manually.py`
 
 Allows manual annotation/labeling of previously collected Reddit posts. Displays posts one by one and prompts for label selection from predefined options.

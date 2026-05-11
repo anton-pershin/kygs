@@ -23,14 +23,14 @@ class SummaryJsonSaver(SummaryHandler):
         self.output_path = output_path
 
     def handle(self, summaries: list[Summary], **kwargs: Any) -> None:
-        records: list[dict[str, str]] = []
+        records: list[dict[str, Any]] = []
         for s in summaries:
-            record: dict[str, str] = {"summary": s.text}
+            record: dict[str, Any] = {"summary": s.text}
             if isinstance(s.metadata, TimeMetadata):
                 record["start_time"] = s.metadata.start_dt.strftime("%Y-%m-%d %H:%M:%S")
                 record["end_time"] = s.metadata.end_dt.strftime("%Y-%m-%d %H:%M:%S")
-            else:
-                for k, v in s.metadata.items():
+            for k, v in s.metadata.items():
+                if k not in ("start_dt", "end_dt"):
                     record[k] = v
             records.append(record)
 

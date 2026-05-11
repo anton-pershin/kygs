@@ -1,0 +1,27 @@
+defaults:
+  - _self_
+  - user_settings: user_settings
+  - hydra: base
+  - llm: local
+  - message_provider: synthetic_messages/small_texting_and_news_200/clustering_results
+  - split_strategy: label_split
+  - summarization_prompt/original_message_annotated@original_message_summarization_prompt
+  - summarization_prompt/partial_summary@partial_summary_summarization_prompt
+  - summary_builder/annotated@original_message_summary_builder
+  - summary_builder/plain@partial_summary_builder
+  - labels: llm_sentiment
+
+project_path: ${user_settings.project_path}
+dataset_path: ${user_settings.dataset_path}
+result_dir: ${user_settings.result_dir}
+hydra_root: ${user_settings.hydra_root}
+hydra_dir: ${user_settings.hydra_dir}
+
+max_characters_in_prompt: 4096
+verbose: false
+summary_per_split_handlers:
+  - _target_: kygs.summary_handler.SummaryJsonSaver
+    output_path: summarized_and_annotated_messages_per_split.json
+overall_summary_handlers:
+  - _target_: kygs.summary_handler.SummaryJsonSaver
+    output_path: summarized_and_annotated_messages_overall.json
