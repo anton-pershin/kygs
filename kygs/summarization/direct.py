@@ -110,9 +110,12 @@ class BaseSummaryBuilder(ABC):
 
 
 class AnnotatedSummaryBuilder(BaseSummaryBuilder):
+    def __init__(self, metadata_key: str = "annotation_labels") -> None:
+        self.metadata_key = metadata_key
+
     def __call__(self, text: str, metadata: Metadata) -> Summary:
         parsed = json.loads(text)
-        enriched_metadata = Metadata({**metadata, "labels": parsed["labels"]})
+        enriched_metadata = Metadata({**metadata, self.metadata_key: parsed["labels"]})
         return Summary(text=parsed["summary"], metadata=enriched_metadata)
 
 

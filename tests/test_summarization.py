@@ -626,7 +626,7 @@ class TestAnnotatedSummaryBuilder:
         response = json.dumps({"summary": "A summary text", "labels": ["positive"]})
         result = builder(text=response, metadata=metadata)
         assert result.text == "A summary text"
-        assert result.metadata["labels"] == ["positive"]
+        assert result.metadata["annotation_labels"] == ["positive"]
         assert result.metadata["topic"] == "test"
 
     def test_parses_json_with_multiple_labels(self):
@@ -637,14 +637,14 @@ class TestAnnotatedSummaryBuilder:
         )
         result = builder(text=response, metadata=Metadata())
         assert result.text == "Another summary"
-        assert result.metadata["labels"] == ["positive", "technology"]
+        assert result.metadata["annotation_labels"] == ["positive", "technology"]
 
     def test_parses_json_with_empty_labels(self):
         builder = AnnotatedSummaryBuilder()
         response = json.dumps({"summary": "No labels apply", "labels": []})
         result = builder(text=response, metadata=Metadata())
         assert result.text == "No labels apply"
-        assert result.metadata["labels"] == []
+        assert result.metadata["annotation_labels"] == []
 
     def test_preserves_existing_metadata(self):
         builder = AnnotatedSummaryBuilder()
@@ -652,4 +652,28 @@ class TestAnnotatedSummaryBuilder:
         result = builder(text=response, metadata=Metadata(topic="cats", count=3))
         assert result.metadata["topic"] == "cats"
         assert result.metadata["count"] == 3
-        assert result.metadata["labels"] == ["a"]
+        assert result.metadata["annotation_labels"] == ["a"]
+
+    def test_preserves_existing_labels_key_in_metadata(self):
+        builder = AnnotatedSummaryBuilder()
+        response = json.dumps({"summary": "Summary", "labels": ["annotation_label"]})
+        result = builder(
+            text=response, metadata=Metadata(labels=["existing_label"])
+        )
+        assert result.metadata["labels"] == ["existing_label"]
+        assert result.metadata["annotation_labels"] == ["annotation_label"]
+
+    def test_custom_metadata_key(self):
+        builder = AnnotatedSummaryBuilder(metadata_key="custom_labels")
+        response = json.dumps({"summary": "Summary", "labels": ["label1"]})
+        result = builder(text=response, metadata=Metadata())
+        assert result.text == "Summary"
+        assert result.metadata["custom_labels"] == ["label1"]
+
+    def test_custom_metadata_key_with_existing_metadata(self):
+        builder = AnnotatedSummaryBuilder(metadata_key="my_annotations")
+        response = json.dumps({"summary": "Summary", "labels": ["new"]})
+        result = builder(
+            text=response, metadata=Metadata(my_annotations=["existing"])
+        )
+        assert result.metadata["my_annotations"] == ["new"]
