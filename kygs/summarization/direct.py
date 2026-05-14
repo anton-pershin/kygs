@@ -6,7 +6,7 @@ from rally.llm import Llm
 from rally.thinking import THINKING_REMOVERS
 
 from kygs.message_provider import Message, MessageCollection
-from kygs.metadata import Metadata
+from kygs.metadata import Metadata, MetadataFieldCollision
 from kygs.summarization.base import BaseSummarization, Summary
 
 
@@ -115,7 +115,28 @@ class AnnotatedSummaryBuilder(BaseSummaryBuilder):
 
     def __call__(self, text: str, metadata: Metadata) -> Summary:
         parsed = json.loads(text)
-        enriched_metadata = Metadata({**metadata, self.metadata_key: parsed["labels"]})
+
+        if self.metadata_key in metadata:
+            raise MetadataFieldCollision(
+                f"Annotation labels collision: "
+                f"'{self.metadata_key}' field already exists."
+            )
+
+        original_class = type(metadata)
+        class_name = f"Annotated{original_class.__name__}"
+        parent_strategies = getattr(original_class, "_merge_strategies", {})
+        new_strategies = {**parent_strategies, self.metadata_key: "union"}
+
+        AnnotatedMetadataClass = type(
+            class_name, (original_class,), {"_merge_strategies": new_strategies}
+        )
+
+        enriched_dict = {**metadata, self.metadata_key: parsed["labels"]}
+        enriched_metadata = AnnotatedMetadataClass.__new__(
+            AnnotatedMetadataClass
+        )  # type: ignore[call-overload]
+        dict.__init__(enriched_metadata, enriched_dict)
+
         return Summary(text=parsed["summary"], metadata=enriched_metadata)
 
 

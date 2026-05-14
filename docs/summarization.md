@@ -48,6 +48,31 @@
 - `TimeBasedSummarizationPrompt` — serializes each message as `{"time": <formatted_time>, "message": <text>}`, including timestamps (used when summarizing original time-stamped messages)
 - `AnnotatedSummarizationPrompt` — extends `BaseSummarizationPrompt` to also inject a `{labels}` placeholder into the user prompt template, providing the LLM with a list of annotation classes. Used in the summarize-and-annotate mode to produce both a summary and multilabel annotations for the entire message collection. Messages are serialized as `{"message": <text>}`.
 
+### Metadata and merge strategies
+
+**Base entity:** Class `Metadata` in `kygs.metadata`
+
+**Description:** All summaries carry metadata that tracks information about the source messages. When summaries are recursively combined, their metadata must be merged. The `Metadata` class supports field-level merge strategies that control how each field is combined:
+
+- `concat`: Concatenate lists (e.g., `["a", "b"] + ["c"]` → `["a", "b", "c"]`)
+- `union`: Set union for lists (e.g., `["a", "b"] ∪ ["b", "c"]` → `["a", "b", "c"]`)
+- `replace`: Replace with new value (default for undefined fields)
+- `min`: Take minimum (used for start timestamps)
+- `max`: Take maximum (used for end timestamps)
+
+Merge strategies are defined per-field in the `_merge_strategies` class attribute:
+
+```python
+class LabelMetadata(Metadata):
+    _merge_strategies = {
+        "labels": "concat",
+    }
+```
+
+The `AnnotatedSummaryBuilder` automatically preserves the input metadata class and adds a `union` strategy for annotation labels, ensuring that annotations from different recursive passes are combined without duplicates.
+
+**Note:** `AnnotatedSummaryBuilder` preserves the input metadata class type. When enriching metadata with annotation labels, it creates a dynamic subclass that inherits all merge strategies from the input metadata class and adds a `union` strategy for the annotation labels field. This ensures that custom metadata classes with specialized merge behavior continue to work correctly through the annotation process.
+
 ## Functionality
 
 ### Direct summarization

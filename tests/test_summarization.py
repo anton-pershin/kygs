@@ -9,7 +9,7 @@ import pytest
 from rally.llm import Llm
 
 from kygs.message_provider import Message, MessageCollection
-from kygs.metadata import Metadata, TimeMetadata, merge_metadatas
+from kygs.metadata import Metadata, MetadataFieldCollision, TimeMetadata, merge_metadatas
 from kygs.summarization.base import Summary, to_message_collection
 from kygs.summarization.direct import (
     AnnotatedSummarizationPrompt,
@@ -298,7 +298,7 @@ class TestSummarizeSummaries:
         result = summarization(message_collections=[message_collection])
 
         assert len(result) == 1
-        assert result[0].metadata["topic"] == "cats"
+        assert result[0].metadata["topic"] == "dogs"
 
     @patch("kygs.summarization.direct.THINKING_REMOVERS", MOCK_THINKING_REMOVERS)
     @patch("kygs.summarization.direct.request_based_on_prompts")
@@ -425,7 +425,7 @@ class TestMergeSummaryMetadatas:
             Summary(text="b", metadata=Metadata(topic="dogs", count=5)),
         ]
         merged = merge_metadatas([s.metadata for s in summaries])
-        assert merged["topic"] == "cats"
+        assert merged["topic"] == "dogs"
         assert merged["count"] == 5
 
     def test_merge_single_summary(self):
@@ -673,7 +673,45 @@ class TestAnnotatedSummaryBuilder:
     def test_custom_metadata_key_with_existing_metadata(self):
         builder = AnnotatedSummaryBuilder(metadata_key="my_annotations")
         response = json.dumps({"summary": "Summary", "labels": ["new"]})
-        result = builder(
-            text=response, metadata=Metadata(my_annotations=["existing"])
+        with pytest.raises(MetadataFieldCollision):
+            builder(
+                text=response, metadata=Metadata(my_annotations=["existing"])
+            )
+
+    def test_raises_on_metadata_field_collision(self):
+        """Test that builder raises exception when annotation_labels already exist."""
+        metadata = Metadata(annotation_labels=["existing"])
+        builder = AnnotatedSummaryBuilder(metadata_key="annotation_labels")
+
+        with pytest.raises(MetadataFieldCollision):
+            builder(
+                text=json.dumps({"summary": "test", "labels": ["new"]}),
+                metadata=metadata,
+            )
+
+    def test_annotation_labels_use_union_merge_strategy(self):
+        """Test that annotation_labels use union strategy in future merges."""
+        from kygs.metadata import merge_metadatas
+
+        metadata1 = Metadata(topic="cats")
+        builder = AnnotatedSummaryBuilder(metadata_key="annotation_labels")
+        response1 = json.dumps(
+            {
+                "summary": "Summary 1",
+                "labels": ["label1", "label2"],
+            }
         )
-        assert result.metadata["my_annotations"] == ["new"]
+        summary1 = builder(text=response1, metadata=metadata1)
+
+        metadata2 = Metadata(topic="dogs")
+        response2 = json.dumps(
+            {
+                "summary": "Summary 2",
+                "labels": ["label2", "label3"],
+            }
+        )
+        summary2 = builder(text=response2, metadata=metadata2)
+
+        merged = merge_metadatas([summary1.metadata, summary2.metadata])
+
+        assert set(merged["annotation_labels"]) == {"label1", "label2", "label3"}

@@ -178,7 +178,7 @@ class TestMetadata:
         m1 = Metadata(topic="cats")
         m2 = Metadata(topic="dogs", count=5)
         merged = m1.merge(m2)
-        assert merged["topic"] == "cats"
+        assert merged["topic"] == "dogs"
         assert merged["count"] == 5
 
     def test_merge_adds_new_keys(self):

@@ -75,7 +75,7 @@ Summarizes collections of messages and assigns multilabel annotations to each co
 #### Output
 
 Two JSON files in the Hydra output directory:
-- `summarized_and_annotated_messages_per_split.json` — one summary per message split, each with a `labels` field in metadata containing the assigned multilabel annotations
+- `summarized_and_annotated_messages_per_split.json` — one summary per message split, each with an `annotation_labels` field in metadata containing the assigned multilabel annotations (configurable via `metadata_key` parameter in `config/summary_builder/annotated.yaml`)
 - `summarized_and_annotated_messages_overall.json` — a single overall summary
 
 ### `annotate_posts_manually.py`
