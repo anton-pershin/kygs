@@ -715,3 +715,20 @@ class TestAnnotatedSummaryBuilder:
         merged = merge_metadatas([summary1.metadata, summary2.metadata])
 
         assert set(merged["annotation_labels"]) == {"label1", "label2", "label3"}
+
+    def test_custom_labels_key(self):
+        builder = AnnotatedSummaryBuilder(labels_key="custom_categories")
+        response = json.dumps(
+            {"summary": "Summary text", "custom_categories": ["cat1", "cat2"]}
+        )
+        result = builder(text=response, metadata=Metadata())
+        assert result.text == "Summary text"
+        assert result.metadata["annotation_labels"] == ["cat1", "cat2"]
+
+    def test_custom_labels_key_with_custom_metadata(self):
+        builder = AnnotatedSummaryBuilder(labels_key="tags")
+        response = json.dumps({"summary": "Summary", "tags": ["tag1"]})
+        result = builder(text=response, metadata=Metadata(topic="test"))
+        assert result.text == "Summary"
+        assert result.metadata["topic"] == "test"
+        assert result.metadata["annotation_labels"] == ["tag1"]

@@ -1,2 +1,3 @@
 _target_: kygs.summarization.direct.AnnotatedSummaryBuilder
 metadata_key: annotation_labels
+labels_key: labels

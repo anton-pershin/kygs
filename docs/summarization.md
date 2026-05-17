@@ -25,7 +25,7 @@
 
 **Base entity:** Abstract base class `BaseSummaryBuilder` in `kygs.summarization.direct`
 
-**Description:** A strategy that constructs a `Summary` from raw LLM response text and the source collection's metadata. This decouples response parsing from the summarization logic. The provided implementation `PlainSummaryBuilder` simply wraps the text and metadata into a `Summary` with no post-processing. Custom builders can parse structured LLM outputs (e.g., extracting specific fields from a JSON response). An additional implementation `AnnotatedSummaryBuilder` parses JSON responses containing both a summary and multilabel annotations, storing the labels in `Summary.metadata` under a configurable key (default: `"annotation_labels"`).
+**Description:** A strategy that constructs a `Summary` from raw LLM response text and the source collection's metadata. This decouples response parsing from the summarization logic. The provided implementation `PlainSummaryBuilder` simply wraps the text and metadata into a `Summary` with no post-processing. Custom builders can parse structured LLM outputs (e.g., extracting specific fields from a JSON response). An additional implementation `AnnotatedSummaryBuilder` parses JSON responses containing both a summary and multilabel annotations, storing the labels in `Summary.metadata` under a configurable key (default: `"annotation_labels"`). The `AnnotatedSummaryBuilder` accepts two configurable keys: `metadata_key` (which key to use when storing labels in metadata, default: `"annotation_labels"`) and `labels_key` (which key to expect in the LLM's JSON response, default: `"labels"`).
 
 ### Split strategy
 
@@ -126,6 +126,6 @@ flowchart TD
 
 **Description:** A mode that combines summarization with multilabel annotation of entire message collections. It uses the same recursive map-reduce architecture but configures the first-pass prompt (`AnnotatedSummarizationPrompt`) and builder (`AnnotatedSummaryBuilder`) to instruct the LLM to return a JSON response containing both a summary and a list of labels. On subsequent recursive passes, plain summarization (without annotation) is used since annotations are only meaningful for original messages.
 
-The list of available label classes is defined in a labels config (e.g., `config/labels/llm_sentiment.yaml`) and is injected into the first-pass prompt template. The LLM assigns zero or more labels to the entire collection, and the resulting labels are stored in `Summary.metadata[metadata_key]` where `metadata_key` is configurable via `config/summary_builder/annotated.yaml` (default: `"annotation_labels"`).
+The list of available label classes is defined in a labels config (e.g., `config/labels/llm_sentiment.yaml`) and is injected into the first-pass prompt template. The LLM assigns zero or more labels to the entire collection, and the resulting labels are stored in `Summary.metadata[metadata_key]` where `metadata_key` is configurable via `config/summary_builder/annotated.yaml` (default: `"annotation_labels"`). The LLM is expected to return a JSON response with the labels under the key specified by `labels_key` (default: `"labels"`), which is also configurable in `config/summary_builder/annotated.yaml`.
 
 **Entry point:** `kygs/scripts/summarize_and_annotate_posts.py` with config `config/config_summarize_and_annotate_posts.yaml`.

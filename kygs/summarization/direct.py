@@ -110,8 +110,13 @@ class BaseSummaryBuilder(ABC):
 
 
 class AnnotatedSummaryBuilder(BaseSummaryBuilder):
-    def __init__(self, metadata_key: str = "annotation_labels") -> None:
+    def __init__(
+        self,
+        metadata_key: str = "annotation_labels",
+        labels_key: str = "labels",
+    ) -> None:
         self.metadata_key = metadata_key
+        self.labels_key = labels_key
 
     def __call__(self, text: str, metadata: Metadata) -> Summary:
         parsed = json.loads(text)
@@ -131,7 +136,7 @@ class AnnotatedSummaryBuilder(BaseSummaryBuilder):
             class_name, (original_class,), {"_merge_strategies": new_strategies}
         )
 
-        enriched_dict = {**metadata, self.metadata_key: parsed["labels"]}
+        enriched_dict = {**metadata, self.metadata_key: parsed[self.labels_key]}
         enriched_metadata = AnnotatedMetadataClass.__new__(
             AnnotatedMetadataClass
         )  # type: ignore[call-overload]

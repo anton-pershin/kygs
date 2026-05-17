@@ -46,9 +46,9 @@ def run_summarize_and_annotate_posts(cfg: DictConfig) -> None:
     )
     overall_summarization = RecursiveSummarization(
         llm=llm,
-        original_message_summarization_prompt=original_message_summarization_prompt,
+        original_message_summarization_prompt=partial_summary_summarization_prompt,
         partial_summary_summarization_prompt=partial_summary_summarization_prompt,
-        original_message_summary_builder=original_message_summary_builder,
+        original_message_summary_builder=partial_summary_builder,
         partial_summary_builder=partial_summary_builder,
         max_characters_in_prompt=cfg.max_characters_in_prompt,
         verbose=cfg.verbose,
