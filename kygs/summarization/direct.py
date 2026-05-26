@@ -119,7 +119,10 @@ class AnnotatedSummaryBuilder(BaseSummaryBuilder):
         self.labels_key = labels_key
 
     def __call__(self, text: str, metadata: Metadata) -> Summary:
-        parsed = json.loads(text)
+        try:
+            parsed = json.loads(text)
+        except json.decoder.JSONDecodeError as e:
+            return None
 
         if self.metadata_key in metadata:
             raise MetadataFieldCollision(
@@ -186,7 +189,7 @@ class DirectSummarization(BaseSummarization):
             self.summary_builder(text=t, metadata=md)
             for t, md in zip(text_summaries, metadatas)
         ]
-        return summaries
+        return [s for s in summaries if s is not None]
 
     def _run_summarization_via_llm(
         self,
