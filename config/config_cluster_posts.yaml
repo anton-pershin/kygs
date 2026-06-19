@@ -2,7 +2,7 @@ defaults:
   - _self_
   - user_settings: user_settings
   - hydra: base
-  - message_provider: synthetic_messages/short_news_10
+  - message_provider: synthetic_messages/small_texting_and_news_200/train
   - embedding: e5
   - embedding_provider: via_model
   - clustering: hac

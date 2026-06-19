@@ -117,7 +117,7 @@ class TestAnnotatedSummaryBuilderPreservesClass:
             custom_field=["field1"],
         )
 
-        builder = AnnotatedSummaryBuilder(metadata_key="annotation_labels")
+        builder = AnnotatedSummaryBuilder(metadata_keys=("annotation_labels",))
         llm_response = json.dumps(
             {
                 "summary": "Test summary",

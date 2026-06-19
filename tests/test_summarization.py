@@ -664,14 +664,14 @@ class TestAnnotatedSummaryBuilder:
         assert result.metadata["annotation_labels"] == ["annotation_label"]
 
     def test_custom_metadata_key(self):
-        builder = AnnotatedSummaryBuilder(metadata_key="custom_labels")
+        builder = AnnotatedSummaryBuilder(metadata_keys=("custom_labels",))
         response = json.dumps({"summary": "Summary", "labels": ["label1"]})
         result = builder(text=response, metadata=Metadata())
         assert result.text == "Summary"
         assert result.metadata["custom_labels"] == ["label1"]
 
     def test_custom_metadata_key_with_existing_metadata(self):
-        builder = AnnotatedSummaryBuilder(metadata_key="my_annotations")
+        builder = AnnotatedSummaryBuilder(metadata_keys=("my_annotations",))
         response = json.dumps({"summary": "Summary", "labels": ["new"]})
         with pytest.raises(MetadataFieldCollision):
             builder(
@@ -681,7 +681,7 @@ class TestAnnotatedSummaryBuilder:
     def test_raises_on_metadata_field_collision(self):
         """Test that builder raises exception when annotation_labels already exist."""
         metadata = Metadata(annotation_labels=["existing"])
-        builder = AnnotatedSummaryBuilder(metadata_key="annotation_labels")
+        builder = AnnotatedSummaryBuilder(metadata_keys=("annotation_labels",))
 
         with pytest.raises(MetadataFieldCollision):
             builder(
@@ -694,7 +694,7 @@ class TestAnnotatedSummaryBuilder:
         from kygs.metadata import merge_metadatas
 
         metadata1 = Metadata(topic="cats")
-        builder = AnnotatedSummaryBuilder(metadata_key="annotation_labels")
+        builder = AnnotatedSummaryBuilder(metadata_keys=("annotation_labels",))
         response1 = json.dumps(
             {
                 "summary": "Summary 1",
@@ -717,7 +717,7 @@ class TestAnnotatedSummaryBuilder:
         assert set(merged["annotation_labels"]) == {"label1", "label2", "label3"}
 
     def test_custom_labels_key(self):
-        builder = AnnotatedSummaryBuilder(labels_key="custom_categories")
+        builder = AnnotatedSummaryBuilder(label_keys=("custom_categories",))
         response = json.dumps(
             {"summary": "Summary text", "custom_categories": ["cat1", "cat2"]}
         )
@@ -726,7 +726,7 @@ class TestAnnotatedSummaryBuilder:
         assert result.metadata["annotation_labels"] == ["cat1", "cat2"]
 
     def test_custom_labels_key_with_custom_metadata(self):
-        builder = AnnotatedSummaryBuilder(labels_key="tags")
+        builder = AnnotatedSummaryBuilder(label_keys=("tags",))
         response = json.dumps({"summary": "Summary", "tags": ["tag1"]})
         result = builder(text=response, metadata=Metadata(topic="test"))
         assert result.text == "Summary"

@@ -112,34 +112,44 @@ class BaseSummaryBuilder(ABC):
 class AnnotatedSummaryBuilder(BaseSummaryBuilder):
     def __init__(
         self,
-        metadata_key: str = "annotation_labels",
-        labels_key: str = "labels",
+        metadata_keys: tuple[str] = ("annotation_labels",),
+        label_keys: tuple[str] = ("labels",),
     ) -> None:
-        self.metadata_key = metadata_key
-        self.labels_key = labels_key
+        self.metadata_keys = metadata_keys
+        self.label_keys = label_keys
 
     def __call__(self, text: str, metadata: Metadata) -> Summary:
         try:
             parsed = json.loads(text)
         except json.decoder.JSONDecodeError as e:
+            print(f"Failed to parse the model response: '{text}'")
             return None
 
-        if self.metadata_key in metadata:
+        if any(k in metadata for k in self.metadata_keys):
             raise MetadataFieldCollision(
                 f"Annotation labels collision: "
-                f"'{self.metadata_key}' field already exists."
+                f"'{self.metadata_keys}' field already exists."
             )
 
         original_class = type(metadata)
         class_name = f"Annotated{original_class.__name__}"
         parent_strategies = getattr(original_class, "_merge_strategies", {})
-        new_strategies = {**parent_strategies, self.metadata_key: "union"}
+        new_strategies = dict(
+            list(parent_strategies.items())
+            + [(metadata_key, "union") for metadata_key in self.metadata_keys]
+        )
 
         AnnotatedMetadataClass = type(
             class_name, (original_class,), {"_merge_strategies": new_strategies}
         )
 
-        enriched_dict = {**metadata, self.metadata_key: parsed[self.labels_key]}
+        enriched_dict = dict(
+            list(metadata.items())
+            + [
+                (metadata_key, parsed[label_key])
+                for metadata_key, label_key in zip(self.metadata_keys, self.label_keys)
+            ]
+        )
         enriched_metadata = AnnotatedMetadataClass.__new__(
             AnnotatedMetadataClass
         )  # type: ignore[call-overload]

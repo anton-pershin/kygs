@@ -1,3 +1,5 @@
+import time
+
 from rally.llm import Llm
 
 from kygs.message_provider import MessageCollection
@@ -38,9 +40,16 @@ class RecursiveSummarization(BaseSummarization):
     def __call__(self, message_collections: list[MessageCollection]) -> list[Summary]:
         # Build a summary for each message collection
         summaries = []
-        for mc in message_collections:
+        n_mcs = len(message_collections)
+        for mc_i, mc in enumerate(message_collections):
+            print(f"Summarizing the {mc_i + 1}/{n_mcs} cluster", end="")
+            time_elapsed = time.time()
+
             summary: Summary = self._summarize_recursively(mc)
             summaries.append(summary)
+
+            time_elapsed = time.time() - time_elapsed
+            print(f". Time elapsed: {time_elapsed} sec")
 
         return summaries
 
