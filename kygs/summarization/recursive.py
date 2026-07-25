@@ -1,3 +1,4 @@
+import logging
 import time
 
 from rally.llm import Llm
@@ -42,14 +43,18 @@ class RecursiveSummarization(BaseSummarization):
         summaries = []
         n_mcs = len(message_collections)
         for mc_i, mc in enumerate(message_collections):
-            print(f"Summarizing the {mc_i + 1}/{n_mcs} cluster", end="")
             time_elapsed = time.time()
 
             summary: Summary = self._summarize_recursively(mc)
             summaries.append(summary)
 
             time_elapsed = time.time() - time_elapsed
-            print(f". Time elapsed: {time_elapsed} sec")
+            logging.info(
+                "Summarized the %d/%d cluster. Time elapsed: %f sec",
+                mc_i + 1,
+                n_mcs,
+                time_elapsed,
+            )
 
         return summaries
 

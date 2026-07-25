@@ -1,4 +1,5 @@
 import json
+import logging
 from abc import ABC, abstractmethod
 
 from rally.interaction import request_based_on_prompts
@@ -122,7 +123,7 @@ class AnnotatedSummaryBuilder(BaseSummaryBuilder):
         try:
             parsed = json.loads(text)
         except json.decoder.JSONDecodeError as e:
-            print(f"Failed to parse the model response: '{text}'")
+            logging.error("Failed to parse the model response: '%s'", text)
             return None
 
         if any(k in metadata for k in self.metadata_keys):

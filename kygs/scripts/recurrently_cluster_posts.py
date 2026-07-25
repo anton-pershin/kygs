@@ -1,3 +1,4 @@
+import logging
 import time
 
 import hydra
@@ -6,7 +7,6 @@ from rich.progress import track
 
 from kygs.message_provider import MessageProvider
 from kygs.utils.common import get_config_path
-from kygs.utils.console import console
 
 CONFIG_NAME = "config_recurrent_cluster_posts"
 
@@ -23,7 +23,7 @@ def recurrently_cluster_posts(cfg: DictConfig) -> None:
     clustering = hydra.utils.instantiate(cfg.clustering)
 
     # Initial clustering
-    console.print("\nPerforming initial clustering...")
+    logging.info("Performing initial clustering...")
     start_time = time.time()
     initial_pred_labels = clustering.fit_predict(initial_mp.messages)
     time_spent = time.time() - start_time
@@ -43,10 +43,10 @@ def recurrently_cluster_posts(cfg: DictConfig) -> None:
         verbose=True,
     )
 
-    console.print(f"\nSaved clustering evaluation to {cfg.output.summary_path}")
+    logging.info("Saved clustering evaluation to %s", cfg.output.summary_path)
 
     # Process streaming messages one by one
-    console.print("\nProcessing streaming messages...")
+    logging.info("Processing streaming messages...")
 
     message_iterator = track(
         enumerate(streaming_mp.messages),
@@ -67,10 +67,14 @@ def recurrently_cluster_posts(cfg: DictConfig) -> None:
         handler = hydra.utils.instantiate(handler_cfg)
         handler.handle(combined_mp.messages)
 
-    console.print("\nHandled clustered messages according to config")
+    logging.info("Handled clustered messages according to config")
 
 
 if __name__ == "__main__":
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+    )
     hydra.main(
         config_path=str(get_config_path()),
         config_name=CONFIG_NAME,

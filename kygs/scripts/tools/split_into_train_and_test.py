@@ -1,3 +1,4 @@
+import logging
 import random
 
 import hydra
@@ -22,12 +23,16 @@ def split_into_train_and_test(cfg: DictConfig) -> None:
     df_train.to_csv(cfg.output_train_dataset_path, index=False)
     df_test.to_csv(cfg.output_test_dataset_path, index=False)
 
-    print(f"Original dataset: {cfg.input_dataset_path}")
-    print(f"Train dataset: {cfg.output_train_dataset_path}")
-    print(f"Test dataset: {cfg.output_test_dataset_path}")
+    logging.info("Original dataset: %s", cfg.input_dataset_path)
+    logging.info("Train dataset: %s", cfg.output_train_dataset_path)
+    logging.info("Test dataset: %s", cfg.output_test_dataset_path)
 
 
 if __name__ == "__main__":
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+    )
     hydra.main(
         config_path=str(get_config_path()),
         config_name=CONFIG_NAME,

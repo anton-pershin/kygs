@@ -1,4 +1,5 @@
 import json
+import logging
 from datetime import datetime
 
 import hydra
@@ -32,12 +33,16 @@ def convert_jsonl_to_message_dataset(cfg: DictConfig) -> None:
 
     pd.DataFrame(rows).to_csv(cfg.output_dataset_path, index=False)
 
-    print("JSONL to CSV conversion:")
-    print(f"JSONL: {cfg.input_dataset_path}")
-    print(f"CSV: {cfg.output_dataset_path}")
+    logging.info("JSONL to CSV conversion:")
+    logging.info("JSONL: %s", cfg.input_dataset_path)
+    logging.info("CSV: %s", cfg.output_dataset_path)
 
 
 if __name__ == "__main__":
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+    )
     hydra.main(
         config_path=str(get_config_path()),
         config_name=CONFIG_NAME,

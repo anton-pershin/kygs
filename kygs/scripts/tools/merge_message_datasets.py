@@ -1,3 +1,5 @@
+import logging
+
 import hydra
 import pandas as pd
 from omegaconf import DictConfig
@@ -20,15 +22,18 @@ def merge_message_datasets(cfg: DictConfig) -> None:
 
     df_merged.to_csv(cfg.output_dataset_path, index=False)
 
-    print("Merged datasets:")
+    logging.info("Merged datasets:")
     for csv_filename in cfg.message_datasets_to_merge:
-        print(f"\t{csv_filename}")
+        logging.info("\t%s", csv_filename)
 
-    print()
-    print(f"Output dataset: {cfg.output_dataset_path}")
+    logging.info("Output dataset: %s", cfg.output_dataset_path)
 
 
 if __name__ == "__main__":
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+    )
     hydra.main(
         config_path=str(get_config_path()),
         config_name=CONFIG_NAME,
