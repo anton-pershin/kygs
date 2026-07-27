@@ -68,10 +68,6 @@ class RecursiveSummarization(BaseSummarization):
                 cur_message_collection, self.max_characters_in_prompt
             )
 
-            # Ensure the recursion converges
-            if len(partitioned_mc) >= len(cur_message_collection.messages):
-                raise LackOfConvergenceException()
-
             # Summarize each partition separately
             # Distinguish between two cases:
             # - original message summarization (original_message_mode = True)
@@ -82,6 +78,14 @@ class RecursiveSummarization(BaseSummarization):
                 )
                 original_message_mode = False
             else:
+                # Ensure the recursion converges
+                # No need to perform this check for original mode
+                # summarization because we may have the same
+                # number of partitions as the number of original
+                # messages
+                if len(partitioned_mc) >= len(cur_message_collection.messages):
+                    raise LackOfConvergenceException()
+
                 summaries = self.partial_summary_summarization(partitioned_mc)
 
             # Transform summaries to a message collection
