@@ -45,15 +45,28 @@ class RecursiveSummarization(BaseSummarization):
         for mc_i, mc in enumerate(message_collections):
             time_elapsed = time.time()
 
-            summary: Summary = self._summarize_recursively(mc)
+            try:
+                summary: Summary = self._summarize_recursively(mc)
+            except SummaryBuildFailureException:
+                logging.warning(
+                    "Failed to summarize the %d/%d message collection, skipping it",
+                    mc_i + 1,
+                    n_mcs,
+                )
+                continue
             summaries.append(summary)
 
             time_elapsed = time.time() - time_elapsed
             logging.info(
-                "Summarized the %d/%d cluster. Time elapsed: %f sec",
+                "Summarized the %d/%d message collection. Time elapsed: %f sec",
                 mc_i + 1,
                 n_mcs,
                 time_elapsed,
+            )
+
+        if not summaries:
+            raise SummaryBuildFailureException(
+                "All message collections failed to produce a summary"
             )
 
         return summaries
@@ -87,6 +100,11 @@ class RecursiveSummarization(BaseSummarization):
                     raise LackOfConvergenceException()
 
                 summaries = self.partial_summary_summarization(partitioned_mc)
+
+            if not summaries:
+                raise SummaryBuildFailureException(
+                    "Summarization produced no valid summaries for a partition"
+                )
 
             # Transform summaries to a message collection
             cur_message_collection = to_message_collection(summaries)
@@ -141,4 +159,8 @@ class OutOfContextLengthException(Exception):
 
 
 class LackOfConvergenceException(Exception):
+    pass
+
+
+class SummaryBuildFailureException(Exception):
     pass

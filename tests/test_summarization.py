@@ -22,6 +22,7 @@ from kygs.summarization.direct import (
 from kygs.summarization.recursive import (
     OutOfContextLengthException,
     RecursiveSummarization,
+    SummaryBuildFailureException,
     _partition_collection,
 )
 
@@ -339,6 +340,136 @@ class TestSummarizeSummaries:
 
         assert len(result) == 1
         assert mock_request.call_count == 1
+
+    @patch("kygs.summarization.direct.THINKING_REMOVERS", MOCK_THINKING_REMOVERS)
+    @patch("kygs.summarization.direct.request_based_on_prompts")
+    def test_recursive_raises_when_all_summaries_fail_to_parse(self, mock_request):
+        mock_request.return_value = ["this is not valid json"]
+        llm = cast(Llm, MockLlm())
+        summaries = [
+            Summary(
+                text="Summary about cats.",
+                metadata=TimeMetadata(start_dt=START_DT, end_dt=END_DT),
+            ),
+            Summary(
+                text="Summary about dogs.",
+                metadata=TimeMetadata(
+                    start_dt=datetime.datetime(2025, 1, 15, 11, 0, 0),
+                    end_dt=datetime.datetime(2025, 1, 15, 12, 0, 0),
+                ),
+            ),
+        ]
+        message_collection = to_message_collection(summaries)
+        original_prompt = OnlyMessageSummarizationPrompt(
+            system_prompt="sys",
+            user_prompt_template="Summarize: {messages_as_json}",
+        )
+        partial_prompt = OnlyMessageSummarizationPrompt(
+            system_prompt="sys",
+            user_prompt_template="Summarize: {messages_as_json}",
+        )
+        summarization = RecursiveSummarization(
+            llm=llm,
+            original_message_summarization_prompt=original_prompt,
+            partial_summary_summarization_prompt=partial_prompt,
+            original_message_summary_builder=AnnotatedSummaryBuilder(),
+            partial_summary_builder=AnnotatedSummaryBuilder(),
+            max_characters_in_prompt=10000,
+        )
+
+        with pytest.raises(SummaryBuildFailureException):
+            summarization(message_collections=[message_collection])
+
+    @patch("kygs.summarization.direct.THINKING_REMOVERS", MOCK_THINKING_REMOVERS)
+    @patch("kygs.summarization.direct.request_based_on_prompts")
+    def test_recursive_skips_failed_collection_and_returns_successful(
+        self, mock_request
+    ):
+        mock_request.side_effect = [
+            ["this is not valid json"],
+            [json.dumps({"summary": "Valid summary.", "labels": ["positive"]})],
+        ]
+        llm = cast(Llm, MockLlm())
+        summaries_template = [
+            Summary(
+                text="Summary about cats.",
+                metadata=TimeMetadata(start_dt=START_DT, end_dt=END_DT),
+            ),
+            Summary(
+                text="Summary about dogs.",
+                metadata=TimeMetadata(
+                    start_dt=datetime.datetime(2025, 1, 15, 11, 0, 0),
+                    end_dt=datetime.datetime(2025, 1, 15, 12, 0, 0),
+                ),
+            ),
+        ]
+        message_collections = [
+            to_message_collection(summaries_template),
+            to_message_collection(summaries_template),
+        ]
+        original_prompt = OnlyMessageSummarizationPrompt(
+            system_prompt="sys",
+            user_prompt_template="Summarize: {messages_as_json}",
+        )
+        partial_prompt = OnlyMessageSummarizationPrompt(
+            system_prompt="sys",
+            user_prompt_template="Summarize: {messages_as_json}",
+        )
+        summarization = RecursiveSummarization(
+            llm=llm,
+            original_message_summarization_prompt=original_prompt,
+            partial_summary_summarization_prompt=partial_prompt,
+            original_message_summary_builder=AnnotatedSummaryBuilder(),
+            partial_summary_builder=AnnotatedSummaryBuilder(),
+            max_characters_in_prompt=10000,
+        )
+
+        result = summarization(message_collections=message_collections)
+
+        assert len(result) == 1
+        assert result[0].text == "Valid summary."
+
+    @patch("kygs.summarization.direct.THINKING_REMOVERS", MOCK_THINKING_REMOVERS)
+    @patch("kygs.summarization.direct.request_based_on_prompts")
+    def test_recursive_raises_when_all_collections_skipped(self, mock_request):
+        mock_request.return_value = ["this is not valid json"]
+        llm = cast(Llm, MockLlm())
+        summaries_template = [
+            Summary(
+                text="Summary about cats.",
+                metadata=TimeMetadata(start_dt=START_DT, end_dt=END_DT),
+            ),
+            Summary(
+                text="Summary about dogs.",
+                metadata=TimeMetadata(
+                    start_dt=datetime.datetime(2025, 1, 15, 11, 0, 0),
+                    end_dt=datetime.datetime(2025, 1, 15, 12, 0, 0),
+                ),
+            ),
+        ]
+        message_collections = [
+            to_message_collection(summaries_template),
+            to_message_collection(summaries_template),
+        ]
+        original_prompt = OnlyMessageSummarizationPrompt(
+            system_prompt="sys",
+            user_prompt_template="Summarize: {messages_as_json}",
+        )
+        partial_prompt = OnlyMessageSummarizationPrompt(
+            system_prompt="sys",
+            user_prompt_template="Summarize: {messages_as_json}",
+        )
+        summarization = RecursiveSummarization(
+            llm=llm,
+            original_message_summarization_prompt=original_prompt,
+            partial_summary_summarization_prompt=partial_prompt,
+            original_message_summary_builder=AnnotatedSummaryBuilder(),
+            partial_summary_builder=AnnotatedSummaryBuilder(),
+            max_characters_in_prompt=10000,
+        )
+
+        with pytest.raises(SummaryBuildFailureException):
+            summarization(message_collections=message_collections)
 
 
 class TestBaseSummarizationPrompt:
