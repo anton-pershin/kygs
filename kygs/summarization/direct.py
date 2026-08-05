@@ -126,6 +126,11 @@ class AnnotatedSummaryBuilder(BaseSummaryBuilder):
             logging.error("Failed to parse the model response: '%s'", text)
             return None
 
+        if not all(k in parsed for k in self.label_keys):
+            logging.error("Bad JSON response format (not all mandatory keys are present): '%s'", text)
+            return None
+            
+
         if any(k in metadata for k in self.metadata_keys):
             raise MetadataFieldCollision(
                 f"Annotation labels collision: "
