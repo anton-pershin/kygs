@@ -193,7 +193,7 @@ class DirectSummarization(BaseSummarization):
             user_prompts.append(user_prompt)
             metadatas.append(message_collection.metadata)
 
-        text_summaries: list[str] = self._run_summarization_via_llm(
+        text_summaries: list[str | None] = self._run_summarization_via_llm(
             user_prompts=user_prompts,
             progress_title=(
                 f"Summarizing {len(user_prompts)} message collections"
@@ -204,6 +204,7 @@ class DirectSummarization(BaseSummarization):
         summaries = [
             self.summary_builder(text=t, metadata=md)
             for t, md in zip(text_summaries, metadatas)
+            if t is not None
         ]
         return [s for s in summaries if s is not None]
 
