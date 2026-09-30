@@ -1,12 +1,11 @@
-project_path: path/to/this/repo
-hydra_root: ${user_settings.project_path}/hydra
+hydra_root: ${oc.env:KYGS_HYDRA_PATH, /tmp/kygs_hydra}
 hydra_dir: ${user_settings.hydra_root}/${now:%Y-%m-%d}/${now:%H-%M-%S}
 result_dir: ${user_settings.hydra_dir}
-dataset_path: path/to/your/datasets
-model_path: path/to/your/models
+dataset_path: ${oc.env:KYGS_DATASET_PATH, null}
+model_path: ${oc.env:KYGS_MODEL_PATH, null}
 
 reddit:
-  client_id: YOUR_CLIENT_ID
-  client_secret: YOUR_CLIENT_SECRET
-  user_agent: YOUR_USER_AGENT
+  client_id: ${oc.env:KYGS_REDDIT_CLIENT_ID, null}
+  client_secret: ${oc.env:KYGS_REDDIT_CLIENT_SECRET, null}
+  user_agent: python
 

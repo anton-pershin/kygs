@@ -8,7 +8,6 @@ defaults:
   - embedding: e5
   - embedding_provider: via_model
 
-project_path: ${user_settings.project_path}
 dataset_path: ${user_settings.dataset_path}
 model_path: ${user_settings.model_path}
 result_dir: ${user_settings.hydra_dir}

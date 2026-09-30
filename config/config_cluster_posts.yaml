@@ -7,7 +7,6 @@ defaults:
   - embedding_provider: via_model
   - clustering: hac
 
-project_path: ${user_settings.project_path}
 dataset_path: ${user_settings.dataset_path}
 model_path: ${user_settings.model_path}
 result_dir: ${user_settings.hydra_dir}

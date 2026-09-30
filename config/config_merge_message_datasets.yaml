@@ -3,7 +3,6 @@ defaults:
   - user_settings: user_settings
   - hydra: base
 
-project_path: ${user_settings.project_path}
 dataset_path: ${user_settings.dataset_path}
 model_path: ${user_settings.model_path}
 result_dir: ${user_settings.hydra_dir}

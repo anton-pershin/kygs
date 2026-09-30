@@ -10,7 +10,6 @@ defaults:
   - summary_builder/plain@original_message_summary_builder
   - summary_builder/plain@partial_summary_builder
 
-project_path: ${user_settings.project_path}
 dataset_path: ${user_settings.dataset_path}
 result_dir: ${user_settings.result_dir}
 hydra_root: ${user_settings.hydra_root}

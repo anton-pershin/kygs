@@ -8,7 +8,6 @@ defaults:
   - message_provider/reddit_posts_small_dataset/train@train_message_provider
   - message_provider/reddit_posts_small_dataset/test@test_message_provider
 
-project_path: ${user_settings.project_path}
 dataset_path: ${user_settings.dataset_path}
 model_path: ${user_settings.model_path}
 result_dir: ${user_settings.hydra_dir}

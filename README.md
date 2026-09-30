@@ -13,13 +13,11 @@ conda activate kygs
 ```bash
 pip install -r requirements.txt
 ```
-3. Set up `/config/user_settings/user_settings.yaml`
+3. Set up environment variables mentioned in `/config/user_settings/user_settings.yaml`
 4. Run one of the scripts `/kygs/scripts/XXX.py` and do not forget to modify the corresponding config file in `/config/config_XXX.yaml'
 ```bash
 python kygs/scripts/XXX.py
 ```
-
-⚠️  DO NOT commit your `user_settings.yaml`
 
 ## Subpackages
 

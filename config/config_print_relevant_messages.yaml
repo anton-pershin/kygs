@@ -5,7 +5,6 @@ defaults:
   - message_provider/synthetic_messages/short_news_10@query_message_provider
   - message_provider/synthetic_messages/short_news_10@document_message_provider
 
-project_path: ${user_settings.project_path}
 dataset_path: ${user_settings.dataset_path}
 model_path: ${user_settings.model_path}
 result_dir: ${user_settings.hydra_dir}

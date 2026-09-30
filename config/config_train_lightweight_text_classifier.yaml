@@ -6,7 +6,6 @@ defaults:
   - message_provider/synthetic_messages/medium_texting_and_news_2000/train@train_message_provider
   - message_provider/synthetic_messages/medium_texting_and_news_2000/test@test_message_provider
 
-project_path: ${user_settings.project_path}
 dataset_path: ${user_settings.dataset_path}
 model_path: ${user_settings.model_path}/lightweight_classifier
 result_dir: ${user_settings.hydra_dir}
